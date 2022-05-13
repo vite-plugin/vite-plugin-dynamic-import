@@ -6,7 +6,7 @@
 [![NPM Downloads](https://img.shields.io/npm/dm/vite-plugin-dynamic-import.svg?style=flat)](https://npmjs.org/package/vite-plugin-dynamic-import)
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
 
-**English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/packages/dynamic-import/README.zh-CN.md)**
+[English](https://github.com/vite-plugin/vite-plugin-dynamic-import#readme) | 简体中文
 
 - 支持在 `import()` 中使用别名
 - 尝试修复诡异的 import 路径

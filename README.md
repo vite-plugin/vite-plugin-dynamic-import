@@ -6,7 +6,7 @@ Enhance Vite builtin dynamic import
 [![NPM Downloads](https://img.shields.io/npm/dm/vite-plugin-dynamic-import.svg?style=flat)](https://npmjs.org/package/vite-plugin-dynamic-import)
 [![awesome-vite](https://awesome.re/badge.svg)](https://github.com/vitejs/awesome-vite)
 
-**English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/packages/dynamic-import/README.zh-CN.md)**
+English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/README.zh-CN.md)
 
 - Support alias
 - Try to fix the wizard import path
