@@ -11,16 +11,17 @@
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "node test/serve.mjs"
   },
   "dependencies": {
     "fast-glob": "^3.2.11",
     "vite-plugin-utils": "^0.1.0"
   },
   "devDependencies": {
-    "@types/node": "^17.x.x",
-    "typescript": "^4.x.x",
-    "vite": "^2.x.x"
+    "@types/node": "^17.0.33",
+    "typescript": "^4.6.4",
+    "vite": "^2.9.9"
   },
   "keywords": [
     "vite",
