@@ -112,14 +112,14 @@ function __variableDynamicImportRuntime2__(path) {
     case '/root/src/views/home/index.ts':
       return import('./views/home/index.ts');
 
-    case '/root/src/views/nested/nesting':
-    case '/root/src/views/nested/nesting.ts':
-      return import('./views/nested/nesting.ts');
-
     case '/root/src/views/nested/nesting-dir':
     case '/root/src/views/nested/nesting-dir/index':
     case '/root/src/views/nested/nesting-dir/index.tsx':
       return import('./views/nested/nesting-dir/index.tsx');
+
+    case '/root/src/views/nested/nesting-dir/nesting':
+    case '/root/src/views/nested/nesting-dir/nesting.ts':
+      return import('./views/nested/nesting-dir/nesting.ts');
 
     default: return new Promise(function(resolve, reject) {
       (typeof queueMicrotask === 'function' ? queueMicrotask : setTimeout)(
@@ -149,14 +149,14 @@ function __variableDynamicImportRuntime3__(path) {
     case './views/home/index.ts':
       return import('./views/home/index.ts');
 
-    case './views/nested/nesting':
-    case './views/nested/nesting.ts':
-      return import('./views/nested/nesting.ts');
-
     case './views/nested/nesting-dir':
     case './views/nested/nesting-dir/index':
     case './views/nested/nesting-dir/index.tsx':
       return import('./views/nested/nesting-dir/index.tsx');
+
+    case './views/nested/nesting-dir/nesting':
+    case './views/nested/nesting-dir/nesting.ts':
+      return import('./views/nested/nesting-dir/nesting.ts');
 
     default: return new Promise(function(resolve, reject) {
       (typeof queueMicrotask === 'function' ? queueMicrotask : setTimeout)(
@@ -210,14 +210,14 @@ function __variableDynamicImportRuntime5__(path) {
     case '@/views/home/index.ts':
       return import('./views/home/index.ts');
 
-    case '@/views/nested/nesting':
-    case '@/views/nested/nesting.ts':
-      return import('./views/nested/nesting.ts');
-
     case '@/views/nested/nesting-dir':
     case '@/views/nested/nesting-dir/index':
     case '@/views/nested/nesting-dir/index.tsx':
       return import('./views/nested/nesting-dir/index.tsx');
+
+    case '@/views/nested/nesting-dir/nesting':
+    case '@/views/nested/nesting-dir/nesting.ts':
+      return import('./views/nested/nesting-dir/nesting.ts');
 
     default: return new Promise(function(resolve, reject) {
       (typeof queueMicrotask === 'function' ? queueMicrotask : setTimeout)(
