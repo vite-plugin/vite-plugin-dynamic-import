@@ -1,0 +1,1 @@
+export const msg = 'nesting-dir/index.tsx'

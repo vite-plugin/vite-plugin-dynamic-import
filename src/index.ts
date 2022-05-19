@@ -14,6 +14,7 @@ import {
   viteIgnoreRE,
   extractImporteeRE,
   simpleWalk,
+  MagicString,
 } from './utils'
 import type { AcornNode } from './types'
 import { AliasContext, AliasReplaced } from './alias'
@@ -49,14 +50,14 @@ const PLUGIN_NAME = 'vite-plugin-dynamic-import'
 export default function dynamicImport(options: DynamicImportOptions = {}): Plugin {
   let config: ResolvedConfig
   let aliasContext: AliasContext
-  let dynamicImport: DynamicImportVars
+  let dynamicImportVars: DynamicImportVars
 
   const dyImpt: Plugin = {
     name: PLUGIN_NAME,
     configResolved(_config) {
       config = _config
       aliasContext = new AliasContext(_config)
-      dynamicImport = new DynamicImportVars(aliasContext)
+      dynamicImportVars = new DynamicImportVars(aliasContext)
     },
     async transform(code, id, opts) {
       const pureId = cleanUrl(id)
@@ -105,7 +106,7 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
           if (replaced && normallyImporteeRE.test(replaced.replacedImportee)) return
 
           const globResult = await globFiles(
-            dynamicImport,
+            dynamicImportVars,
             node,
             code,
             id,
@@ -145,14 +146,15 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
       })
 
       let dyImptRutimeBody = ''
+      const ms = new MagicString(code)
       if (dynamicImportRecords.length) {
-        for (let len = dynamicImportRecords.length, i = len - 1; i >= 0; i--) {
+        for (const dyImptRecord of dynamicImportRecords) {
           const {
             node,
             importeeRaw,
             importRuntime,
             normally,
-          } = dynamicImportRecords[i]
+          } = dyImptRecord
 
           let placeholder: string
           if (normally) {
@@ -178,21 +180,17 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
              */
 
             placeholder = `${importRuntime.name}(${importeeRaw})`
-            dyImptRutimeBody = importRuntime.body + dyImptRutimeBody
+            dyImptRutimeBody += importRuntime.body
           }
 
-          code = code.slice(0, node.start) + placeholder + code.slice(node.end)
+          ms.overwrite(node.start, node.end, placeholder)
         }
 
         if (dyImptRutimeBody) {
-          code += `\n// --------- ${PLUGIN_NAME} ---------\n` + dyImptRutimeBody
+          ms.append(`\n// --------- ${PLUGIN_NAME} ---------\n` + dyImptRutimeBody)
         }
 
-        return {
-          code,
-          // TODO: sourcemap
-          map: { mappings: '' },
-        }
+        return ms.toString()
       }
     },
   }
@@ -225,7 +223,7 @@ type GlobNormally = {
 type GlobFilesResult = GlobHasFiles | GlobNormally | null
 
 async function globFiles(
-  dynamicImport: DynamicImportVars,
+  dynamicImportVars: DynamicImportVars,
   ImportExpressionNode: AcornNode,
   sourceString: string,
   id: string,
@@ -237,7 +235,7 @@ async function globFiles(
   const code = sourceString
   const pureId = cleanUrl(id)
 
-  const { alias, glob: globObj } = await dynamicImport.dynamicImportToGlob(
+  const { alias, glob: globObj } = await dynamicImportVars.dynamicImportToGlob(
     node.source,
     code.substring(node.start, node.end),
     pureId,

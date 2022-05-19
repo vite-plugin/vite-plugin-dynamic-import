@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>vite-plugin-dynamic-import</title>
+  </head>
+  <body>
+    <div class="btns-alias1">
+      <button class="foo-alias1">@ | foo.js</button>
+      <span>'.js' extension</span>
+    </div>
+    <hr/>
+    <div class="btns-alias2">
+      <button class="bar-alias2">@/ | bar.mjs</button>
+      <span>'.mjs' extension</span>
+    </div>
+    <hr/>
+    <div class="btns-alias3">
+      <button class="foo-alias3">root/src | foo.js</button>
+      <button class="bar-alias3">root/src | bar.mjs</button>
+      <button class="baz-alias3">root/src | baz/index.tsx</button>
+      <button class="home-alias3">root/src | home/index.ts</button>
+      <span>do not have extension</span>
+    </div>
+    <hr/>
+    <div class="btns-may">
+      <button class="may-foo">`./views${id}` | foo.js</button>
+      <button class="may-bar">`./views${id}` | bar.mjs</button>
+      <button class="may-nesting">`./views${id}` | nested/nesting.ts</button>
+      <button class="may-nesting-dir">`./views${id}` | nested/nesting-dir/index.tsx</button>
+      <span>may be module</span>
+    </div>
+    <hr/>
+    <div class="btns-may-ext">
+      <button class="may-ext-baz">`./views${id}.tsx` | baz/index.tsx</button>
+      <button class="may-ext-nesting-dir">`./views${id}.tsx` | nested/nesting-dir/index.tsx</button>
+      <span>may be module with extension</span>
+    </div>
+    <hr/>
+    <div class="btns-may-normally">
+      <button class="may-normally-alias">'@/views/' + 'foo.js'` | foo.js</button>
+      <span>may be normally path</span>
+    </div>
+    <hr/>
+    <div class="btns-only-alias">
+      <button class="only-alias">`@/${id}` | views/baz/index.tsx</button>
+      <span>only alias</span>
+    </div>
+    <hr/>
+    <div class="view"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
