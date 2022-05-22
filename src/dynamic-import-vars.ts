@@ -95,6 +95,8 @@ function expressionToGlob(node) {
       // import('@/pages/path')
       return sanitizeString(node.value);
     }
+    case 'Identifier':
+      return '*/*'
     default:
       return '*';
   }
