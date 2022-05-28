@@ -195,11 +195,7 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
     },
   }
 
-  return sortPlugin({
-    plugin: dyImpt,
-    names: Object.values(OfficialPlugins).flat(),
-    enforce: 'post',
-  })
+  return  dyImpt
 }
 
 interface DynamicImportRecord {
