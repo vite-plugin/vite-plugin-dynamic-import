@@ -1,6 +1,9 @@
 import path from 'path'
-import type { Alias, ResolvedConfig } from 'vite'
-import { normalizePath } from 'vite'
+import {
+  type Alias,
+  type ResolvedConfig,
+  normalizePath,
+} from 'vite'
 import { extractImporteeRE } from './utils'
 
 export interface AliasReplaced {
@@ -37,6 +40,8 @@ export class AliasContext {
       }
     }
 
+    // It may not be elegant here, just to look consistent with the behavior of the Vite
+    // Maybe this means support for `alias.customResolver`
     const resolvedId = await this.resolve(ipte, id, true)
     if (!resolvedId) return
 

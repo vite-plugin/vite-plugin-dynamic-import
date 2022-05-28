@@ -98,11 +98,11 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
           if (!matched) return
 
           const [, startQuotation, importee] = matched
-          // this is a normal path
+          // normally importee
           if (normallyImporteeRE.test(importee)) return
 
           const replaced = await aliasContext.replaceImportee(importee, id)
-          // this is a normal path
+          // normally importee
           if (replaced && normallyImporteeRE.test(replaced.replacedImportee)) return
 
           const globResult = await globFiles(
@@ -125,7 +125,7 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
           }
 
           if (globResult['normally']) {
-            // this is a normal path
+            // normally importee
             const { normally } = globResult as GlobNormally
             dynamicImportRecords.push({ ...dyRecord, normally })
           } else {
