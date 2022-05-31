@@ -1,5 +1,9 @@
 import path from 'path'
-import type { AliasContext, AliasReplaced } from './alias'
+import { Resolve } from './resolve'
+import {
+  type AliasReplaced,
+  AliasContext,
+} from './alias'
 import type { AcornNode } from './types'
 
 export interface ImporteeGlob {
@@ -12,7 +16,8 @@ export interface ImporteeGlob {
 
 export class DynamicImportVars {
   constructor(
-    private aliasContext: AliasContext
+    private resolve: Resolve,
+    private aliasContext: AliasContext,
   ) { }
 
   public async dynamicImportToGlob(
@@ -23,9 +28,23 @@ export class DynamicImportVars {
     const result: Partial<ImporteeGlob> = {}
 
     const aliasReplacer = async (globImportee: string) => {
-      const replaced = await this.aliasContext.replaceImportee(globImportee, id)
-      result.alias = replaced as typeof result.alias
-      return replaced ? replaced.replacedImportee : globImportee
+      const aliasReplaced = await this.aliasContext.replaceImportee(globImportee, id)
+      if (aliasReplaced) {
+        result.alias = aliasReplaced
+        return aliasReplaced.replacedImportee
+      }
+
+      // TODO: merge alias and resolve
+      const alias = this.resolve.node_modules(globImportee, id)
+      if (alias) {
+        const replacedImportee = globImportee.replace(alias.find, alias.replacement)
+        result.alias = {
+          alias,
+          importee: globImportee,
+          replacedImportee,
+        }
+        return replacedImportee
+      }
     }
     result.glob = await dynamicImportToGlob(node, sourceString, aliasReplacer)
 
@@ -102,7 +121,7 @@ function expressionToGlob(node) {
 
 async function dynamicImportToGlob(node, sourceString, aliasReplacer) {
   let glob = expressionToGlob(node);
-  glob = await aliasReplacer(glob);
+  glob = await aliasReplacer(glob) || glob;
   if (!glob.includes('*') || glob.startsWith('data:')) {
     // After `expressiontoglob` processing, it may become a normal path
     return { glob, valid: false };

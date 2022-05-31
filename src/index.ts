@@ -2,8 +2,6 @@ import path from 'path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
 import {
-  sortPlugin,
-  OfficialPlugins,
   cleanUrl,
   JS_EXTENSIONS,
   KNOWN_SFC_EXTENSIONS,
@@ -17,6 +15,7 @@ import {
   MagicString,
 } from './utils'
 import type { AcornNode } from './types'
+import { Resolve } from './resolve'
 import { AliasContext, AliasReplaced } from './alias'
 import {
   DynamicImportVars,
@@ -49,6 +48,7 @@ const PLUGIN_NAME = 'vite-plugin-dynamic-import'
 
 export default function dynamicImport(options: DynamicImportOptions = {}): Plugin {
   let config: ResolvedConfig
+  let resolve: Resolve
   let aliasContext: AliasContext
   let dynamicImportVars: DynamicImportVars
 
@@ -56,8 +56,9 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
     name: PLUGIN_NAME,
     configResolved(_config) {
       config = _config
+      resolve = new Resolve(_config)
       aliasContext = new AliasContext(_config)
-      dynamicImportVars = new DynamicImportVars(aliasContext)
+      dynamicImportVars = new DynamicImportVars(resolve, aliasContext)
     },
     async transform(code, id, opts) {
       const pureId = cleanUrl(id)
