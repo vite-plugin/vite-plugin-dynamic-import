@@ -2,17 +2,17 @@ import path from 'path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
 import {
-  cleanUrl,
   JS_EXTENSIONS,
   KNOWN_SFC_EXTENSIONS,
 } from 'vite-plugin-utils'
 import {
+  MagicString,
+  cleanUrl,
+  extractImporteeRE,
   hasDynamicImport,
   normallyImporteeRE,
-  viteIgnoreRE,
-  extractImporteeRE,
   simpleWalk,
-  MagicString,
+  viteIgnoreRE,
 } from './utils'
 import type { AcornNode } from './types'
 import { Resolve } from './resolve'

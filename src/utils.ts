@@ -1,8 +1,6 @@
 import type { AcornNode } from 'rollup'
-import {
-  singlelineCommentsRE,
-  multilineCommentsRE,
-} from 'vite-plugin-utils'
+
+// ------------------------------------------------- RegExp
 
 export const dynamicImportRE = /\bimport[\s\r\n]*?\(/
 // this is probably less accurate
@@ -10,6 +8,31 @@ export const normallyImporteeRE = /^\.{1,2}\/[.-/\w]+(\.\w+)$/
 // [, startQuotation, importee]
 export const extractImporteeRE = /^([`'"]{1})(.*)$/
 export const viteIgnoreRE = /\/\*\s*@vite-ignore\s*\*\//
+export const multilineCommentsRE = /\/\*(.|[\r\n])*?\*\//gm
+export const singlelineCommentsRE = /\/\/.*/g
+export const queryRE = /\?.*$/s
+export const hashRE = /#.*$/s
+
+// ------------------------------------------------- const
+
+export const JS_EXTENSIONS = [
+  '.mjs',
+  '.js',
+  '.ts',
+  '.jsx',
+  '.tsx',
+  '.cjs'
+]
+export const KNOWN_SFC_EXTENSIONS = [
+  '.vue',
+  '.svelte',
+]
+
+// ------------------------------------------------- function
+
+export function cleanUrl(url: string): string {
+  return url.replace(hashRE, '').replace(queryRE, '')
+}
 
 export function hasDynamicImport(code: string) {
   code = code
