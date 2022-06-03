@@ -1,9 +1,8 @@
 import path from 'path'
-import { Resolve } from './resolve'
 import {
-  type AliasReplaced,
-  AliasContext,
-} from './alias'
+  type Resolved,
+  Resolve,
+} from './resolve'
 import type { AcornNode } from './types'
 
 export interface ImporteeGlob {
@@ -11,13 +10,12 @@ export interface ImporteeGlob {
     glob: string
     valid: boolean
   }
-  alias?: AliasReplaced
+  resolved?: Resolved
 }
 
 export class DynamicImportVars {
   constructor(
     private resolve: Resolve,
-    private aliasContext: AliasContext,
   ) { }
 
   public async dynamicImportToGlob(
@@ -27,26 +25,15 @@ export class DynamicImportVars {
   ): Promise<ImporteeGlob> {
     const result: Partial<ImporteeGlob> = {}
 
-    const aliasReplacer = async (globImportee: string) => {
-      const aliasReplaced = await this.aliasContext.replaceImportee(globImportee, id)
-      if (aliasReplaced) {
-        result.alias = aliasReplaced
-        return aliasReplaced.replacedImportee
-      }
+    const resolver = async (globImportee: string) => {
+      const resolved = await this.resolve.tryResolve(globImportee, id)
+      if (resolved) {
+        result.resolved = resolved
 
-      // TODO: merge alias and resolve
-      const alias = this.resolve.node_modules(globImportee, id)
-      if (alias) {
-        const replacedImportee = globImportee.replace(alias.find, alias.replacement)
-        result.alias = {
-          alias,
-          importee: globImportee,
-          replacedImportee,
-        }
-        return replacedImportee
+        return resolved.import.resolved
       }
     }
-    result.glob = await dynamicImportToGlob(node, sourceString, aliasReplacer)
+    result.glob = await dynamicImportToGlob(node, sourceString, resolver)
 
     return result as ImporteeGlob
   }
@@ -119,9 +106,9 @@ function expressionToGlob(node) {
   }
 }
 
-async function dynamicImportToGlob(node, sourceString, aliasReplacer) {
+async function dynamicImportToGlob(node, sourceString, resolver) {
   let glob = expressionToGlob(node);
-  glob = await aliasReplacer(glob) || glob;
+  glob = await resolver(glob) || glob;
   if (!glob.includes('*') || glob.startsWith('data:')) {
     // After `expressiontoglob` processing, it may become a normal path
     return { glob, valid: false };

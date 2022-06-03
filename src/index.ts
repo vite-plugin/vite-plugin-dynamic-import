@@ -1,29 +1,33 @@
 import path from 'path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
+
 import {
-  cleanUrl,
   JS_EXTENSIONS,
   KNOWN_SFC_EXTENSIONS,
-} from 'vite-plugin-utils'
-import {
+  MagicString,
+  cleanUrl,
+  extractImporteeRE,
   hasDynamicImport,
   normallyImporteeRE,
-  viteIgnoreRE,
-  extractImporteeRE,
   simpleWalk,
-  MagicString,
+  viteIgnoreRE,
 } from './utils'
 import type { AcornNode } from './types'
-import { Resolve } from './resolve'
-import { AliasContext, AliasReplaced } from './alias'
+import {
+  type Resolved,
+  Resolve,
+} from './resolve'
 import {
   DynamicImportVars,
   tryFixGlobExtension,
   tryFixGlobSlash,
   toDepthGlob,
 } from './dynamic-import-vars'
-import { DynamicImportRuntime, generateDynamicImportRuntime } from './dynamic-import-helper'
+import {
+  type DynamicImportRuntime,
+  generateDynamicImportRuntime,
+} from './dynamic-import-helper'
 
 export interface DynamicImportOptions {
   filter?: (id: string) => false | void
@@ -49,7 +53,6 @@ const PLUGIN_NAME = 'vite-plugin-dynamic-import'
 export default function dynamicImport(options: DynamicImportOptions = {}): Plugin {
   let config: ResolvedConfig
   let resolve: Resolve
-  let aliasContext: AliasContext
   let dynamicImportVars: DynamicImportVars
 
   const dyImpt: Plugin = {
@@ -57,8 +60,7 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
     configResolved(_config) {
       config = _config
       resolve = new Resolve(_config)
-      aliasContext = new AliasContext(_config)
-      dynamicImportVars = new DynamicImportVars(resolve, aliasContext)
+      dynamicImportVars = new DynamicImportVars(resolve)
     },
     async transform(code, id, opts) {
       const pureId = cleanUrl(id)
@@ -102,9 +104,9 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
           // normally importee
           if (normallyImporteeRE.test(importee)) return
 
-          const replaced = await aliasContext.replaceImportee(importee, id)
+          const resolved = await resolve.tryResolve(importee, id)
           // normally importee
-          if (replaced && normallyImporteeRE.test(replaced.replacedImportee)) return
+          if (resolved && normallyImporteeRE.test(resolved.import.resolved)) return
 
           const globResult = await globFiles(
             dynamicImportVars,
@@ -130,14 +132,14 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
             const { normally } = globResult as GlobNormally
             dynamicImportRecords.push({ ...dyRecord, normally })
           } else {
-            const { glob, files, alias } = globResult as GlobHasFiles
+            const { glob, files, resolved } = globResult as GlobHasFiles
             if (!files.length) return
 
             const importeeMappings = listImporteeMappings(
               glob,
               globExtensions,
               files,
-              alias,
+              resolved,
             )
 
             const importRuntime = generateDynamicImportRuntime(importeeMappings, dynamicImportIndex++)
@@ -208,13 +210,13 @@ interface DynamicImportRecord {
 
 type GlobHasFiles = {
   glob: string
-  alias?: AliasReplaced & { files: string[] }
+  resolved?: Resolved & { files: string[] }
   files: string[]
 }
 type GlobNormally = {
   normally: {
     glob: string
-    alias?: AliasReplaced
+    resolved?: Resolved
   }
 }
 type GlobFilesResult = GlobHasFiles | GlobNormally | null
@@ -232,14 +234,14 @@ async function globFiles(
   const code = sourceString
   const pureId = cleanUrl(id)
 
-  const { alias, glob: globObj } = await dynamicImportVars.dynamicImportToGlob(
+  const { resolved, glob: globObj } = await dynamicImportVars.dynamicImportToGlob(
     node.source,
     code.substring(node.start, node.end),
     pureId,
   )
   if (!globObj.valid) {
     if (normallyImporteeRE.test(globObj.glob)) {
-      return { normally: { glob: globObj.glob, alias } }
+      return { normally: { glob: globObj.glob, resolved } }
     }
     // this was not a variable dynamic import
     return null
@@ -263,12 +265,12 @@ async function globFiles(
   files = files.map(file => !file.startsWith('.') ? /* 🚧-③ */'./' + file : file)
   onFiles && (files = onFiles(files, pureId) || files)
 
-  let aliasWithFiles: GlobHasFiles['alias']
-  if (alias) {
-    const static1 = alias.importee.slice(0, alias.importee.indexOf('*'))
-    const static2 = alias.replacedImportee.slice(0, alias.replacedImportee.indexOf('*'))
-    aliasWithFiles = {
-      ...alias,
+  let resolvedWithFiles: GlobHasFiles['resolved']
+  if (resolved) {
+    const static1 = resolved.import.importee.slice(0, resolved.import.importee.indexOf('*'))
+    const static2 = resolved.import.resolved.slice(0, resolved.import.resolved.indexOf('*'))
+    resolvedWithFiles = {
+      ...resolved,
       files: files.map(file =>
         // Recovery alias `./views/*` -> `@/views/*`
         file.replace(static2, static1)
@@ -278,7 +280,7 @@ async function globFiles(
 
   return {
     glob,
-    alias: aliasWithFiles,
+    resolved: resolvedWithFiles,
     files,
   }
 }
@@ -287,12 +289,12 @@ function listImporteeMappings(
   glob: string,
   extensions: string[],
   importeeList: string[],
-  alias?: GlobHasFiles['alias'],
+  resolved?: GlobHasFiles['resolved'],
 ) {
   const hasExtension = extensions.some(ext => glob.endsWith(ext))
   return importeeList.reduce((memo, importee, idx) => {
     const realFilepath = importee
-    importee = alias ? alias.files[idx] : importee
+    importee = resolved ? resolved.files[idx] : importee
     if (hasExtension) {
       return Object.assign(memo, { [realFilepath]: [importee] })
     }
