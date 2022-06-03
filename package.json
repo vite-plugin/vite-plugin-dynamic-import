@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-dynamic-import",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Enhance Vite builtin dynamic import",
   "main": "dist/index.js",
   "repository": {
@@ -15,7 +15,7 @@
     "test": "node test/serve.mjs"
   },
   "dependencies": {
-    "fast-glob": "^3.2.11",
+    "fast-glob": "^3.2.11"
   },
   "devDependencies": {
     "@types/node": "^17.0.33",
