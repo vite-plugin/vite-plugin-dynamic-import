@@ -1,11 +1,10 @@
 import path from 'path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
+
 import {
   JS_EXTENSIONS,
   KNOWN_SFC_EXTENSIONS,
-} from 'vite-plugin-utils'
-import {
   MagicString,
   cleanUrl,
   extractImporteeRE,
