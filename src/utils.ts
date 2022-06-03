@@ -12,6 +12,8 @@ export const multilineCommentsRE = /\/\*(.|[\r\n])*?\*\//gm
 export const singlelineCommentsRE = /\/\/.*/g
 export const queryRE = /\?.*$/s
 export const hashRE = /#.*$/s
+export const bareImportRE = /^[\w@](?!.*:\/\/)/
+export const deepImportRE = /^([^@][^/]*)\/|^(@[^/]+\/[^/]+)\//
 
 // ------------------------------------------------- const
 
@@ -102,4 +104,18 @@ export class MagicString {
     }
     return this.starts + str + this.ends
   }
+}
+
+
+export function isRaw(importee: string) {
+  return /^[`'"]/.test(importee)
+}
+
+export function parseImportee(importee: string) {
+  let [startQuotation, imptee] = ['', importee, '']
+  const matched = importee.match(extractImporteeRE)
+  if (matched) {
+    [, startQuotation, imptee] = matched
+  }
+  return [startQuotation, imptee]
 }
