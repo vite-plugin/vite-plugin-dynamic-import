@@ -1,19 +1,14 @@
-import path from 'path'
 import fs from 'fs'
-import { fileURLToPath } from 'url'
-import { createRequire } from 'module'
-import { createServer } from 'vite'
-const dynamicImport = createRequire(import.meta.url)('../dist').default
+import path from 'path'
+import { defineConfig } from 'vite'
+import dynamicImport from '..'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-const server = await createServer({
-  configFile: false,
+export default defineConfig({
   root: __dirname,
   plugins: [
     dynamicImport(),
     {
-      name: 'vite-plugin-dynamic-import--test',
+      name: 'vite-plugin-dynamic-import:test',
       transform(code, id) {
         if (/src\/main\.ts$/.test(id)) {
           // Write transformed code to main-output.js
@@ -33,7 +28,3 @@ const server = await createServer({
     minify: false,
   },
 })
-
-await server.listen()
-const { address, port } = server.httpServer.address()
-server.config.logger.info(`👉 dev server running at: http://${address}:${port}`, { timestamp: true })
