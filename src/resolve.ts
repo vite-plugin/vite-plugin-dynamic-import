@@ -20,11 +20,7 @@ export class Resolve {
 
   constructor(
     private config: ResolvedConfig,
-    private resolve = config.createResolver({
-      preferRelative: true,
-      tryIndex: false,
-      extensions: [],
-    }),
+    private resolve = config.createResolver(),
   ) { }
 
   public async tryResolve(importee: string, id: string): Promise<Resolved | void> {

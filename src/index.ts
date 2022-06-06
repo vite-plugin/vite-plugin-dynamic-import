@@ -51,6 +51,8 @@ export interface DynamicImportOptions {
 const PLUGIN_NAME = 'vite-plugin-dynamic-import'
 
 export default function dynamicImport(options: DynamicImportOptions = {}): Plugin {
+  const extensions = JS_EXTENSIONS.concat(KNOWN_SFC_EXTENSIONS)
+  let globExtensions: string[]
   let config: ResolvedConfig
   let resolve: Resolve
   let dynamicImportVars: DynamicImportVars
@@ -59,17 +61,15 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
     name: PLUGIN_NAME,
     configResolved(_config) {
       config = _config
+      globExtensions = config.resolve?.extensions || extensions
       resolve = new Resolve(_config)
       dynamicImportVars = new DynamicImportVars(resolve)
     },
     async transform(code, id, opts) {
       const pureId = cleanUrl(id)
-      const extensions = JS_EXTENSIONS.concat(KNOWN_SFC_EXTENSIONS)
-      const globExtensions = config.resolve?.extensions || extensions
-      const { ext } = path.parse(pureId)
 
-      if (/node_modules/.test(pureId) && !pureId.includes('.vite')) return
-      if (!extensions.includes(ext)) return
+      if (/node_modules\/(?!\.vite)/.test(pureId)) return
+      if (!extensions.includes(path.extname(pureId))) return
       if (!hasDynamicImport(code)) return
       if (options.filter?.(pureId) === false) return
 
@@ -198,7 +198,7 @@ export default function dynamicImport(options: DynamicImportOptions = {}): Plugi
     },
   }
 
-  return  dyImpt
+  return dyImpt
 }
 
 interface DynamicImportRecord {
