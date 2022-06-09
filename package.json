@@ -11,8 +11,8 @@
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "prepublishOnly": "npm run build",
-    "test": "node test/serve.mjs"
+    "test": "vite -c test/vite.config.ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "fast-glob": "^3.2.11"

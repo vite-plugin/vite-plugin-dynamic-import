@@ -9,34 +9,41 @@ import { parseImportee } from './utils'
 
 export interface Resolved {
   type: 'alias' | 'bare'
-  alias: Alias
+  alias: Omit<Alias, 'customResolver'>
   import: {
+    /** Always starts with alias or bare */
     importee: string
+    importer: string
+    /** Always relative path */
     resolved: string
   }
 }
 
+/**
+ * This is different from the resolve of Vite. Which only resolves `node_module` and `alias` into relative paths.  
+ * 这和 Vite 的 resolve 并不一样，它只是将 node_modules、alias 解析成相对路径  
+ */
 export class Resolve {
 
   constructor(
     private config: ResolvedConfig,
-    private resolve = config.createResolver({
-      preferRelative: true,
-      tryIndex: false,
-      extensions: [],
-    }),
+    private resolve = config.createResolver(),
   ) { }
 
-  public async tryResolve(importee: string, id: string): Promise<Resolved | void> {
-    return await this.tryResolveAlias(importee, id) || this.tryResolveBare(importee, id)
+  /**
+   * Resolve the relative path of alias or bare(module)  
+   * 解析 alias 或 bare(裸模块) 的相对路径  
+   */
+  public async tryResolve(importee: string, importer: string): Promise<Resolved | undefined> {
+    return await this.tryResolveAlias(importee, importer) || this.tryResolveBare(importee, importer)
   }
 
-  private async tryResolveAlias(importee: string, id: string): Promise<Resolved | void> {
+  private async tryResolveAlias(importee: string, importer: string): Promise<Resolved> {
     const [, impt] = parseImportee(importee)
 
     // It may not be elegant here, just to look consistent with the behavior of the Vite
     // Maybe this means support for `alias.customResolver`
-    const resolvedId = await this.resolve(impt, id, true)
+    const resolvedId = await this.resolve(impt, importer, true)
     if (!resolvedId) return
 
     const alias = this.config.resolve.alias.find(
@@ -49,11 +56,11 @@ export class Resolve {
 
     return {
       type: 'alias',
-      ...this.resolveAlias(importee, id, alias),
+      ...this.resolveAlias(importee, importer, alias),
     }
   }
 
-  private tryResolveBare(importee: string, id: string): Resolved | void {
+  private tryResolveBare(importee: string, importer: string): Resolved {
     const [, impt] = parseImportee(importee)
 
     // It's relative or absolute path
@@ -72,7 +79,7 @@ export class Resolve {
       const fullPath = path.join(node_modules, level)
       if (fs.existsSync(fullPath)) {
         find = level
-        const normalId = normalizePath(id)
+        const normalId = normalizePath(importer)
         let relp = path.relative(path.dirname(normalId), node_modules)
         if (relp === '') {
           relp = '.'
@@ -86,13 +93,13 @@ export class Resolve {
     const alias: Alias = { find, replacement }
     return {
       type: 'bare',
-      ...this.resolveAlias(importee, id, alias)
+      ...this.resolveAlias(importee, importer, alias)
     }
   }
 
   private resolveAlias(
     importee: string,
-    id: string,
+    importer: string,
     alias: Alias,
   ): Omit<Resolved, 'type'> {
     let [startQuotation, impt] = parseImportee(importee)
@@ -102,7 +109,7 @@ export class Resolve {
       // Relative path
       impt = impt.replace(find, replacement)
     } else {
-      const normalId = normalizePath(id)
+      const normalId = normalizePath(importer)
       const normalReplacement = normalizePath(replacement)
 
       // Compatible with vite restrictions
@@ -114,7 +121,7 @@ export class Resolve {
         normalReplacement,
       )
       if (relativePath === '') {
-        relativePath = /* 🚧-③ */'.'
+        relativePath = /* 🚧-② */'.'
       }
       const relativeImportee = relativePath + '/' + impt
         .replace(find, '')
@@ -127,6 +134,7 @@ export class Resolve {
       alias,
       import: {
         importee,
+        importer,
         resolved: startQuotation + impt,
       },
     }
