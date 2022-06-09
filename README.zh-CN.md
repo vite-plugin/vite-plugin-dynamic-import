@@ -8,9 +8,9 @@
 
 [English](https://github.com/vite-plugin/vite-plugin-dynamic-import#readme) | 简体中文
 
-- 支持在 `import()` 中使用别名
-- 尝试修复诡异的 import 路径
-- 兼容 `@rollup/plugin-dynamic-import-vars` 限制
+✅ alis  
+✅ bare module(node_modules)  
+✅ 兼容 `@rollup/plugin-dynamic-import-vars` 限制   
 
 ## 安装
 
@@ -19,12 +19,13 @@ npm i vite-plugin-dynamic-import -D
 ```
 
 ## 使用
+
 ```javascript
 import dynamicImport from 'vite-plugin-dynamic-import'
 
 export default {
   plugins: [
-    dynamicImport()
+    dynamicImport(/* options */)
   ]
 }
 ```
@@ -34,12 +35,10 @@ export default {
 
 ## API
 
-### DynamicImport([options])
-
-##### options: DynamicImportOptions
+dynamicImport([options])
 
 ```ts
-export interface DynamicImportOptions {
+export interface Options {
   filter?: (id: string) => false | void
   /**
    * 这个选项将会把 `./*` 变成 `./** /*`
@@ -61,15 +60,15 @@ export interface DynamicImportOptions {
 
 ## 作此为甚？
 
-**假如有如下项目结构**
+*假如有如下项目结构*
 
 ```tree
-├── src
-|   └── views
-|   |   ├ foo
-|   |   |   └── index.js
-|   |   └── bar.js
-|   └── router.js
+├─┬ src
+│ ├─┬ views
+│ │ ├─┬ foo
+│ │ │ └── index.js
+│ │ └── bar.js
+│ └── router.js
 └── vite.config.js
 ```
 
@@ -85,7 +84,7 @@ export default {
 }
 ```
 
-**动态导入在 Vite 中支持的不甚友好, 举几个 🌰**
+*动态导入在 Vite 中支持的不甚友好, 举几个 🌰*
 
 - 用不了别名
 
@@ -108,7 +107,7 @@ export default {
 ❌ import(`./views/${variable}`)
 ```
 
-**我们尝试与这个糟糕的世界怼一怼**
+*我们尝试与这个糟糕的世界怼一怼*
 
 要想在 `import()` 直接使用别名那肯定是不行哒；既要使用别名，还要根据别名计算相对路径 `UserConfig.root`
 

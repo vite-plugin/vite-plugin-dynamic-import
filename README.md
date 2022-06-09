@@ -8,9 +8,9 @@ Enhance Vite builtin dynamic import
 
 English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/README.zh-CN.md)
 
-- Support alias
-- Try to fix the wizard import path
-- Compatible `@rollup/plugin-dynamic-import-vars` restrictions
+✅ alis  
+✅ bare module(node_modules)  
+✅ compatible `@rollup/plugin-dynamic-import-vars` restrictions  
 
 ## Install
 
@@ -19,12 +19,13 @@ npm i vite-plugin-dynamic-import -D
 ```
 
 ## Usage
+
 ```javascript
 import dynamicImport from 'vite-plugin-dynamic-import'
 
 export default {
   plugins: [
-    dynamicImport()
+    dynamicImport(/* options */)
   ]
 }
 ```
@@ -33,12 +34,10 @@ export default {
 
 ## API
 
-### DynamicImport([options])
-
-##### options: DynamicImportOptions
+dynamicImport([options])
 
 ```ts
-export interface DynamicImportOptions {
+export interface Options {
   filter?: (id: string) => false | void
   /**
    * This option will change `./*` to `./** /*`
@@ -60,7 +59,7 @@ export interface DynamicImportOptions {
 
 ## How and why?
 
-**We assume that the project structure is as follows**
+*We assume that the project structure is as follows*
 
 ```tree
 ├─┬ src
@@ -84,7 +83,7 @@ export default {
 }
 ```
 
-**Dynamic import is not well supported in Vite, such as**
+*Dynamic import is not well supported in Vite, such as*
 
 - Alias are not supported
 
@@ -107,7 +106,7 @@ export default {
 ❌ import(`./views/${variable}`)
 ```
 
-**We try to fix these problems**
+*We try to fix these problems*
 
 For the alias in `import()`, we can calculate the relative path according to `UserConfig.root`
 
@@ -141,7 +140,3 @@ So we need to list all the possibilities
 +       return import('./views/bar.js');
 + }
 ```
-
-## TODO
-
-- [ ] support `alias.customResolver`
