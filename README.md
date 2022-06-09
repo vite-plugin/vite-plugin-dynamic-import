@@ -8,7 +8,7 @@ Enhance Vite builtin dynamic import
 
 English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/README.zh-CN.md)
 
-✅ alis  
+✅ alias  
 ✅ bare module(node_modules)  
 ✅ compatible `@rollup/plugin-dynamic-import-vars` restrictions  
 
