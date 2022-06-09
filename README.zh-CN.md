@@ -8,7 +8,7 @@
 
 [English](https://github.com/vite-plugin/vite-plugin-dynamic-import#readme) | 简体中文
 
-✅ alis  
+✅ alias  
 ✅ bare module(node_modules)  
 ✅ 兼容 `@rollup/plugin-dynamic-import-vars` 限制   
 
