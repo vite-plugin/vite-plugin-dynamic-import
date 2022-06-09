@@ -1,12 +1,14 @@
+import path from 'path'
 import type { AcornNode } from 'rollup'
+import type { Resolved } from './resolve'
 
 // ------------------------------------------------- RegExp
 
 export const dynamicImportRE = /\bimport[\s\r\n]*?\(/
 // this is probably less accurate
 export const normallyImporteeRE = /^\.{1,2}\/[.-/\w]+(\.\w+)$/
-// [, startQuotation, importee]
-export const extractImporteeRE = /^([`'"]{1})(.*)$/
+// [, startQuotation, importee, endQuotation]
+export const extractImporteeRE = /^([`'"]{1})(.*)([`'"]{1})$/
 export const viteIgnoreRE = /\/\*\s*@vite-ignore\s*\*\//
 export const multilineCommentsRE = /\/\*(.|[\r\n])*?\*\//gm
 export const singlelineCommentsRE = /\/\/.*/g
@@ -118,4 +120,59 @@ export function parseImportee(importee: string) {
     [, startQuotation, imptee] = matched
   }
   return [startQuotation, imptee]
+}
+
+// In some cases, glob may not be available
+// e.g. (fill necessary slash)
+//   `./foo*` -> `./foo/*`
+//   `./foo*.js` -> `./foo/*.js`
+export function tryFixGlobSlash(glob: string): string {
+  return glob.replace(/(?<![\*\/])(\*)/g, '/$1')
+}
+
+// Match as far as possible
+// e.g.
+//   `./foo/*` -> `./foo/**/*`
+//   `./foo/*.js` -> `./foo/**/*.js`
+export function toDepthGlob(glob: string): string {
+  return glob.replace(/^(.*)\/\*(?!\*)/, '$1/**/*')
+}
+
+
+/**
+ * e.g. `src/foo/index.js` and has alias(@)
+ * 
+ * ```
+ * const maps = {
+ *   './foo/index.js': [
+ *     '@/foo',
+ *     '@/foo/index',
+ *     '@/foo/index.js',
+ *   ],
+ * }
+ * ```
+ */
+export function mappingPath(paths: string[], resolved?: Resolved) {
+  const maps: Record<string, string[]> = {}
+  for (const p of paths) {
+    let importee = p
+    if (resolved) {
+      const static1 = resolved.import.importee.slice(0, resolved.import.importee.indexOf('*'))
+      const static2 = resolved.import.resolved.slice(0, resolved.import.resolved.indexOf('*'))
+      // Recovery alias `./views/*` -> `@/views/*`
+      importee = p.replace(static2, static1)
+    }
+    const ext = path.extname(importee)
+
+    maps[p] = [
+      // @/foo
+      importee.endsWith(`/index${ext}`) && importee.replace(`/index${ext}`, ''),
+      // @/foo/index
+      importee.replace(ext, ''),
+      // @/foo/index.js
+      importee,
+    ].filter(Boolean)
+  }
+
+  return maps
 }
