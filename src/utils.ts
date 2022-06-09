@@ -10,7 +10,7 @@ export const normallyImporteeRE = /^\.{1,2}\/[.-/\w]+(\.\w+)$/
 // [, startQuotation, importee, endQuotation]
 export const extractImporteeRE = /^([`'"]{1})(.*)([`'"]{1})$/
 export const viteIgnoreRE = /\/\*\s*@vite-ignore\s*\*\//
-export const multilineCommentsRE = /\/\*(.|[\r\n])*?\*\//gm
+export const multilineCommentsRE = /\/\*(.|[\r\n])*?\*\//g
 export const singlelineCommentsRE = /\/\/.*/g
 export const queryRE = /\?.*$/s
 export const hashRE = /#.*$/s
