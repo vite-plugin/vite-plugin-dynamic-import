@@ -5,16 +5,18 @@ import {
   type ResolvedConfig,
   normalizePath,
 } from 'vite'
-import { parseImportee } from './utils'
 
 export interface Resolved {
   type: 'alias' | 'bare'
   alias: Omit<Alias, 'customResolver'>
   import: {
-    /** Always starts with alias or bare */
+    /** 
+     * 1. what the user passes in is what it is
+     * 2. always starts with alias or bare
+     */
     importee: string
     importer: string
-    /** Always relative path */
+    /** always relative path */
     resolved: string
   }
 }
@@ -39,36 +41,36 @@ export class Resolve {
   }
 
   private async tryResolveAlias(importee: string, importer: string): Promise<Resolved> {
-    const [, impt] = parseImportee(importee)
+    const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
     // It may not be elegant here, just to look consistent with the behavior of the Vite
     // Maybe this means support for `alias.customResolver`
-    const resolvedId = await this.resolve(impt, importer, true)
+    const resolvedId = await this.resolve(ipte, importer, true)
     if (!resolvedId) return
 
     const alias = this.config.resolve.alias.find(
-      alias => alias.find instanceof RegExp
-        ? alias.find.test(impt)
+      a => a.find instanceof RegExp
+        ? a.find.test(ipte)
         // https://github.com/rollup/plugins/blob/8fadc64c679643569239509041a24a9516baf340/packages/alias/src/index.ts#L16
-        : impt.startsWith(alias.find + '/')
+        : ipte.startsWith(a.find + '/')
     )
     if (!alias) return
 
     return {
       type: 'alias',
-      ...this.resolveAlias(importee, importer, alias),
+      ...this.resolveAlias(importeeRaw, importer, alias),
     }
   }
 
   private tryResolveBare(importee: string, importer: string): Resolved {
-    const [, impt] = parseImportee(importee)
+    const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
-    // It's relative or absolute path
-    if (/^[\.\/]/.test(impt)) {
+    // it's relative or absolute path
+    if (/^[\.\/]/.test(ipte)) {
       return
     }
 
-    const paths = impt.split('/')
+    const paths = ipte.split('/')
     const node_modules = path.join(this.config.root, 'node_modules')
     let level = ''
     let find: string, replacement: string
@@ -93,7 +95,7 @@ export class Resolve {
     const alias: Alias = { find, replacement }
     return {
       type: 'bare',
-      ...this.resolveAlias(importee, importer, alias)
+      ...this.resolveAlias(importeeRaw, importer, alias)
     }
   }
 
@@ -102,17 +104,22 @@ export class Resolve {
     importer: string,
     alias: Alias,
   ): Omit<Resolved, 'type'> {
-    let [startQuotation, impt] = parseImportee(importee)
     const { find, replacement } = alias
+    let {
+      importee: ipte,
+      importeeRaw = ipte,
+      startQuotation = '',
+    } = this.parseImportee(importee)
 
     if (replacement.startsWith('.')) {
-      // Relative path
-      impt = impt.replace(find, replacement)
+      // relative path
+      ipte = ipte.replace(find, replacement)
     } else {
+      // to calculate the relative path
       const normalId = normalizePath(importer)
       const normalReplacement = normalizePath(replacement)
 
-      // Compatible with vite restrictions
+      // compatible with vite restrictions
       // https://github.com/vitejs/vite/blob/1e9615d8614458947a81e0d4753fe61f3a277cb3/packages/vite/src/node/plugins/importAnalysis.ts#L672
       let relativePath = path.relative(
         // Usually, the `replacement` we use is the directory path
@@ -123,20 +130,37 @@ export class Resolve {
       if (relativePath === '') {
         relativePath = /* 🚧-② */'.'
       }
-      const relativeImportee = relativePath + '/' + impt
+      const relativeImportee = relativePath + '/' + ipte
         .replace(find, '')
-        // Remove the beginning /
+        // remove the beginning /
         .replace(/^\//, '')
-      impt = relativeImportee
+      ipte = relativeImportee
     }
 
     return {
       alias,
       import: {
-        importee,
+        importee: importeeRaw,
         importer,
-        resolved: startQuotation + impt,
+        resolved: startQuotation + ipte,
       },
     }
+  }
+
+  private parseImportee(importee: string) {
+    const result: {
+      importee: string
+      importeeRaw?: string
+      startQuotation?: string
+    } = { importee }
+    if (/^[`'"]/.test(importee)) {
+      result.importee = importee.slice(1)
+      result.importeeRaw = importee
+      result.startQuotation = importee.slice(0, 1)
+      // why not `endQuotation` ?
+      // in fact, may be parse `endQuotation` is meaningless
+      // e.g. `import('./foo/' + path)`
+    }
+    return result
   }
 }

@@ -7,8 +7,6 @@ import type { Resolved } from './resolve'
 export const dynamicImportRE = /\bimport[\s\r\n]*?\(/
 // this is probably less accurate
 export const normallyImporteeRE = /^\.{1,2}\/[.-/\w]+(\.\w+)$/
-// [, startQuotation, importee, endQuotation]
-export const extractImporteeRE = /^([`'"]{1})(.*)([`'"]{1})$/
 export const viteIgnoreRE = /\/\*\s*@vite-ignore\s*\*\//
 export const multilineCommentsRE = /\/\*(.|[\r\n])*?\*\//g
 export const singlelineCommentsRE = /\/\/.*/g
@@ -106,20 +104,6 @@ export class MagicString {
     }
     return this.starts + str + this.ends
   }
-}
-
-
-export function isRaw(importee: string) {
-  return /^[`'"]/.test(importee)
-}
-
-export function parseImportee(importee: string) {
-  let [startQuotation, imptee] = ['', importee, '']
-  const matched = importee.match(extractImporteeRE)
-  if (matched) {
-    [, startQuotation, imptee] = matched
-  }
-  return [startQuotation, imptee]
 }
 
 // In some cases, glob may not be available
