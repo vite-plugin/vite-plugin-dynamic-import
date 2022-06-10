@@ -30,7 +30,7 @@ export default {
 }
 ```
 
-**Cases 👉 [vite-plugin-dynamic-import/test](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/test)**
+cases 👉 [vite-plugin-dynamic-import/test](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/test)
 
 ## API
 
