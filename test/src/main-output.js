@@ -20,7 +20,7 @@
     document.querySelector(".view").innerHTML = msg;
   }
   async function setView6() {
-    const { msg } = await import('./views/foo.js');
+    const { msg } = await import("./views/foo.js");
     document.querySelector(".view").innerHTML = msg;
   }
   async function setView7(id) {
@@ -167,9 +167,6 @@ function __variableDynamicImportRuntime4__(path) {
 }
 function __variableDynamicImportRuntime5__(path) {
   switch (path) {
-    case '@/main-output':
-    case '@/main-output.js':
-      return import('./main-output.js');
     case '@/main':
     case '@/main.ts':
       return import('./main.ts');
