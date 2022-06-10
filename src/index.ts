@@ -1,4 +1,6 @@
 import path from 'path'
+import type { AcornNode as AcornNode2 } from 'rollup'
+export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
 
@@ -15,7 +17,6 @@ import {
   tryFixGlobSlash,
   toDepthGlob,
 } from './utils'
-import type { AcornNode } from './types'
 import { type Resolved, Resolve } from './resolve'
 import { dynamicImportToGlob } from './dynamic-import-to-glob'
 
@@ -183,7 +184,6 @@ async function globFiles(
   let globRaw: string
 
   glob = await dynamicImportToGlob(
-    // `require` should have only one parameter
     node.source,
     code.slice(node.start, node.end),
     async (raw) => {
