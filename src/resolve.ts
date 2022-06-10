@@ -10,10 +10,13 @@ export interface Resolved {
   type: 'alias' | 'bare'
   alias: Omit<Alias, 'customResolver'>
   import: {
-    /** Always starts with alias or bare */
+    /** 
+     * 1. what the user passes in is what it is
+     * 2. always starts with alias or bare
+     */
     importee: string
     importer: string
-    /** Always relative path */
+    /** always relative path */
     resolved: string
   }
 }
@@ -38,36 +41,36 @@ export class Resolve {
   }
 
   private async tryResolveAlias(importee: string, importer: string): Promise<Resolved> {
-    importee = importee.slice(1)
+    const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
     // It may not be elegant here, just to look consistent with the behavior of the Vite
     // Maybe this means support for `alias.customResolver`
-    const resolvedId = await this.resolve(importee, importer, true)
+    const resolvedId = await this.resolve(ipte, importer, true)
     if (!resolvedId) return
 
     const alias = this.config.resolve.alias.find(
       a => a.find instanceof RegExp
-        ? a.find.test(importee)
+        ? a.find.test(ipte)
         // https://github.com/rollup/plugins/blob/8fadc64c679643569239509041a24a9516baf340/packages/alias/src/index.ts#L16
-        : importee.startsWith(a.find + '/')
+        : ipte.startsWith(a.find + '/')
     )
     if (!alias) return
 
     return {
       type: 'alias',
-      ...this.resolveAlias(importee, importer, alias),
+      ...this.resolveAlias(importeeRaw, importer, alias),
     }
   }
 
   private tryResolveBare(importee: string, importer: string): Resolved {
-    importee = importee.slice(1)
+    const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
     // It's relative or absolute path
-    if (/^[\.\/]/.test(importee)) {
+    if (/^[\.\/]/.test(ipte)) {
       return
     }
 
-    const paths = importee.split('/')
+    const paths = ipte.split('/')
     const node_modules = path.join(this.config.root, 'node_modules')
     let level = ''
     let find: string, replacement: string
@@ -92,7 +95,7 @@ export class Resolve {
     const alias: Alias = { find, replacement }
     return {
       type: 'bare',
-      ...this.resolveAlias(importee, importer, alias)
+      ...this.resolveAlias(importeeRaw, importer, alias)
     }
   }
 
@@ -101,13 +104,16 @@ export class Resolve {
     importer: string,
     alias: Alias,
   ): Omit<Resolved, 'type'> {
-    const startQuotation = importee.slice(0, 1)
-    importee = importee.slice(1)
     const { find, replacement } = alias
+    let {
+      importee: ipte,
+      importeeRaw = ipte,
+      startQuotation = '',
+    } = this.parseImportee(importee)
 
     if (replacement.startsWith('.')) {
       // Relative path
-      importee = importee.replace(find, replacement)
+      ipte = ipte.replace(find, replacement)
     } else {
       const normalId = normalizePath(importer)
       const normalReplacement = normalizePath(replacement)
@@ -123,20 +129,37 @@ export class Resolve {
       if (relativePath === '') {
         relativePath = /* 🚧-② */'.'
       }
-      const relativeImportee = relativePath + '/' + importee
+      const relativeImportee = relativePath + '/' + ipte
         .replace(find, '')
         // Remove the beginning /
         .replace(/^\//, '')
-      importee = relativeImportee
+      ipte = relativeImportee
     }
 
     return {
       alias,
       import: {
-        importee,
+        importee: importeeRaw,
         importer,
-        resolved: startQuotation + importee,
+        resolved: startQuotation + ipte,
       },
     }
+  }
+
+  private parseImportee(importee: string) {
+    const result: {
+      importee: string
+      importeeRaw?: string
+      startQuotation?: string
+    } = { importee }
+    if (/^[`'"]/.test(importee)) {
+      result.importee = importee.slice(1)
+      result.importeeRaw = importee
+      result.startQuotation = importee.slice(0, 1)
+      // why not `endQuotation` ?
+      // in fact, may be parse `endQuotation` is meaningless
+      // e.g. `import('./foo/' + path)`
+    }
+    return result
   }
 }
