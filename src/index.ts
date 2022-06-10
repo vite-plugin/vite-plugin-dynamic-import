@@ -7,7 +7,6 @@ import {
   KNOWN_SFC_EXTENSIONS,
   MagicString,
   cleanUrl,
-  extractImporteeRE,
   hasDynamicImport,
   normallyImporteeRE,
   simpleWalk,
@@ -86,7 +85,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
           }
 
           if (node.source.type === 'Literal') {
-            const [, , importee] = importeeRaw.match(extractImporteeRE)
+            const importee = importeeRaw.slice(1, -1)
             // empty value
             if (!importee) return
             // normally importee
