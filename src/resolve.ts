@@ -5,7 +5,6 @@ import {
   type ResolvedConfig,
   normalizePath,
 } from 'vite'
-import { parseImportee } from './utils'
 
 export interface Resolved {
   type: 'alias' | 'bare'
@@ -39,18 +38,18 @@ export class Resolve {
   }
 
   private async tryResolveAlias(importee: string, importer: string): Promise<Resolved> {
-    const [, impt] = parseImportee(importee)
+    importee = importee.slice(1)
 
     // It may not be elegant here, just to look consistent with the behavior of the Vite
     // Maybe this means support for `alias.customResolver`
-    const resolvedId = await this.resolve(impt, importer, true)
+    const resolvedId = await this.resolve(importee, importer, true)
     if (!resolvedId) return
 
     const alias = this.config.resolve.alias.find(
-      alias => alias.find instanceof RegExp
-        ? alias.find.test(impt)
+      a => a.find instanceof RegExp
+        ? a.find.test(importee)
         // https://github.com/rollup/plugins/blob/8fadc64c679643569239509041a24a9516baf340/packages/alias/src/index.ts#L16
-        : impt.startsWith(alias.find + '/')
+        : importee.startsWith(a.find + '/')
     )
     if (!alias) return
 
@@ -61,14 +60,14 @@ export class Resolve {
   }
 
   private tryResolveBare(importee: string, importer: string): Resolved {
-    const [, impt] = parseImportee(importee)
+    importee = importee.slice(1)
 
     // It's relative or absolute path
-    if (/^[\.\/]/.test(impt)) {
+    if (/^[\.\/]/.test(importee)) {
       return
     }
 
-    const paths = impt.split('/')
+    const paths = importee.split('/')
     const node_modules = path.join(this.config.root, 'node_modules')
     let level = ''
     let find: string, replacement: string
@@ -102,12 +101,13 @@ export class Resolve {
     importer: string,
     alias: Alias,
   ): Omit<Resolved, 'type'> {
-    let [startQuotation, impt] = parseImportee(importee)
+    const startQuotation = importee.slice(0, 1)
+    importee = importee.slice(1)
     const { find, replacement } = alias
 
     if (replacement.startsWith('.')) {
       // Relative path
-      impt = impt.replace(find, replacement)
+      importee = importee.replace(find, replacement)
     } else {
       const normalId = normalizePath(importer)
       const normalReplacement = normalizePath(replacement)
@@ -123,11 +123,11 @@ export class Resolve {
       if (relativePath === '') {
         relativePath = /* 🚧-② */'.'
       }
-      const relativeImportee = relativePath + '/' + impt
+      const relativeImportee = relativePath + '/' + importee
         .replace(find, '')
         // Remove the beginning /
         .replace(/^\//, '')
-      impt = relativeImportee
+      importee = relativeImportee
     }
 
     return {
@@ -135,7 +135,7 @@ export class Resolve {
       import: {
         importee,
         importer,
-        resolved: startQuotation + impt,
+        resolved: startQuotation + importee,
       },
     }
   }
