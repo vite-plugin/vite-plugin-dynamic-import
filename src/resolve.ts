@@ -65,7 +65,7 @@ export class Resolve {
   private tryResolveBare(importee: string, importer: string): Resolved {
     const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
-    // It's relative or absolute path
+    // it's relative or absolute path
     if (/^[\.\/]/.test(ipte)) {
       return
     }
@@ -112,13 +112,14 @@ export class Resolve {
     } = this.parseImportee(importee)
 
     if (replacement.startsWith('.')) {
-      // Relative path
+      // relative path
       ipte = ipte.replace(find, replacement)
     } else {
+      // to calculate the relative path
       const normalId = normalizePath(importer)
       const normalReplacement = normalizePath(replacement)
 
-      // Compatible with vite restrictions
+      // compatible with vite restrictions
       // https://github.com/vitejs/vite/blob/1e9615d8614458947a81e0d4753fe61f3a277cb3/packages/vite/src/node/plugins/importAnalysis.ts#L672
       let relativePath = path.relative(
         // Usually, the `replacement` we use is the directory path
@@ -131,7 +132,7 @@ export class Resolve {
       }
       const relativeImportee = relativePath + '/' + ipte
         .replace(find, '')
-        // Remove the beginning /
+        // remove the beginning /
         .replace(/^\//, '')
       ipte = relativeImportee
     }
