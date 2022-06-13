@@ -10,7 +10,7 @@
 
 ✅ alias  
 ✅ bare module(node_modules)  
-✅ 兼容 `@rollup/plugin-dynamic-import-vars` 限制   
+✅ 兼容 `@rollup/plugin-dynamic-import-vars` [限制](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations)     
 
 ## 安装
 
@@ -109,7 +109,7 @@ export default {
 
 *我们尝试与这个糟糕的世界怼一怼*
 
-要想在 `import()` 直接使用别名那肯定是不行哒；既要使用别名，还要根据别名计算相对路径 `UserConfig.root`
+要想在 `import()` 直接使用别名那肯定是不行哒；既要使用别名，还要根据别名计算相对路径
 
 ```js
 // router.js
