@@ -167,9 +167,6 @@ function __variableDynamicImportRuntime4__(path) {
 }
 function __variableDynamicImportRuntime5__(path) {
   switch (path) {
-    case '@/main':
-    case '@/main.ts':
-      return import('./main.ts');
     case '@/views/bar':
     case '@/views/bar.mjs':
       return import('./views/bar.mjs');

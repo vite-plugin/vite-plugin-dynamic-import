@@ -6,7 +6,9 @@ import dynamicImport from '..'
 export default defineConfig({
   root: __dirname,
   plugins: [
-    dynamicImport(),
+    dynamicImport({
+      onFiles: files => files.filter(f => !f.includes('main-output.js')),
+    }),
     {
       name: 'vite-plugin-dynamic-import:test',
       transform(code, id) {

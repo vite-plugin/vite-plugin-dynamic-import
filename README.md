@@ -10,7 +10,7 @@ English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-impo
 
 ✅ alias  
 ✅ bare module(node_modules)  
-✅ compatible `@rollup/plugin-dynamic-import-vars` restrictions  
+✅ compatible `@rollup/plugin-dynamic-import-vars` [limitations](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations)  
 
 ## Install
 
@@ -108,7 +108,7 @@ export default {
 
 *We try to fix these problems*
 
-For the alias in `import()`, we can calculate the relative path according to `UserConfig.root`
+For the alias in `import()`, we can calculate the relative path according to `importer`
 
 ```js
 // router.js
