@@ -1,5 +1,6 @@
 import path from 'path'
-import type { AcornNode } from 'rollup'
+import type { AcornNode as AcornNode2 } from 'rollup'
+export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 import type { Resolved } from './resolve'
 
 // ------------------------------------------------- RegExp

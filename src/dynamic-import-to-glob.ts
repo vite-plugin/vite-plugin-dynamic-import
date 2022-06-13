@@ -1,5 +1,6 @@
 import path from 'path'
-import { type AcornNode } from './types'
+import type { AcornNode as AcornNode2 } from 'rollup'
+export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 
 const example = 'For example: import(`./foo/${bar}.js`).'
 
