@@ -74,17 +74,17 @@ export async function dynamicImportToGlob(
   sourceString: string,
   /**
    * The `resolver` for processing alias or bare(node_modules), 
-   * and try to add extensions for compatible restrict of '@rollup/plugin-dynamic-import-vars'
+   * and try to add extension for compatible restrict of '@rollup/plugin-dynamic-import-vars'
    * 
    *```
    * e.g.
    * import(`@/foo/${bar}`)
    * ↓
-   * import(`./foo/${bar}.extensions`)
+   * import(`./foo/${bar}.extension`)
    * 
    * import(`@ant-design/icons/es/icons/${name}Outlined`)
    * ↓
-   * import(`./node_modules/icons/es/icons/${name}Outlined.extensions`)
+   * import(`./node_modules/icons/es/icons/${name}Outlined.extension`)
    * ```
    */
   resolver?: (glob: string) => string | Promise<string>,

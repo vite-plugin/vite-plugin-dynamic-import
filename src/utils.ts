@@ -123,7 +123,6 @@ export function toDepthGlob(glob: string): string {
   return glob.replace(/^(.*)\/\*(?!\*)/, '$1/**/*')
 }
 
-
 /**
  * e.g. `src/foo/index.js` and has alias(@)
  * 
