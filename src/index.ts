@@ -62,7 +62,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
     async transform(code, id) {
       const pureId = cleanUrl(id)
 
-      if (/node_modules\/(?!\.vite)/.test(pureId)) return
+      if (/node_modules\/(?!\.vite\/)/.test(pureId)) return
       if (!extensions.includes(path.extname(pureId))) return
       if (!hasDynamicImport(code)) return
       if (options.filter?.(pureId) === false) return
