@@ -1,6 +1,5 @@
 import path from 'path'
 import type { AcornNode as AcornNode2 } from 'rollup'
-import { normalizePath } from 'vite'
 export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 
 const example = 'For example: import(`./foo/${bar}.js`).'
@@ -91,7 +90,7 @@ export async function dynamicImportToGlob(
   resolver?: (glob: string) => string | Promise<string>,
 ): Promise<string> {
   let glob = expressionToGlob(node)
-  glob = normalizePath(await resolver(glob) ?? glob)
+  glob = await resolver(glob) ?? glob
   if (!glob.includes('*') || glob.startsWith('data:')) {
     return null
   }

@@ -1,7 +1,7 @@
 import path from 'path'
 import type { AcornNode as AcornNode2 } from 'rollup'
 export type AcornNode<T = any> = AcornNode2 & Record<string, T>
-import { normalizePath, Plugin, ResolvedConfig } from 'vite'
+import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
 
 import {
@@ -192,8 +192,6 @@ async function globFiles(
       globRaw = raw
       resolved = await resolve.tryResolve(raw, importer)
       if (resolved) {
-        // Fix Windows OS
-        resolved.import.resolved = normalizePath(resolved.import.resolved)
         raw = resolved.import.resolved
       }
       if (!path.extname(raw)) {
