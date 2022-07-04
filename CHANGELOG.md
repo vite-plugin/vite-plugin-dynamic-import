@@ -31,12 +31,18 @@
 
 ## [2022-06-13] v0.9.9
 
-84eda9b test: v0.9.9
-c7f0799 docs: v0.9.9
-e9f65e9 fix(🐞): skip itself from glob
-2b38f0f test: optimize code
-809d818 docs: update
-ec9036d remove types.ts
-23af7ee chore: AcornNode
-8adc6fe Merge pull request #9 from vite-plugin/dev
-bd74200 chore: comments
+- 84eda9b test: v0.9.9
+- c7f0799 docs: v0.9.9
+- e9f65e9 fix(🐞): skip itself from glob
+- 2b38f0f test: optimize code
+- 809d818 docs: update
+- ec9036d remove types.ts
+- 23af7ee chore: AcornNode
+- 8adc6fe Merge pull request #9 from vite-plugin/dev
+- bd74200 chore: comments
+
+## [2022-06-13] v0.9.9
+
+- 71af433 docs: v1.0.0
+- 45eace4 chore:more exact match `.vite/`
+- ebd993c 🚨:use `options.loose` instead of `options.depth`
