@@ -41,7 +41,7 @@
 - 8adc6fe Merge pull request #9 from vite-plugin/dev
 - bd74200 chore: comments
 
-## [2022-06-13] v0.9.9
+## [2022-07-04] v1.0.0
 
 - 71af433 docs: v1.0.0
 - 45eace4 chore:more exact match `.vite/`
