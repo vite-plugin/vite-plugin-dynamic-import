@@ -41,10 +41,11 @@ dynamicImport([options])
 export interface Options {
   filter?: (id: string) => false | void
   /**
-   * 这个选项将会把 `./*` 变成 `./** /*`
+   * 1. `true` - 尽量匹配所有可能场景, 功能更像 `webpack`
+   * 2. `false` - 功能更像rollup的 `@rollup/plugin-dynamic-import-vars`插件
    * @default true
    */
-  depth?: boolean
+  loose?: boolean
   /**
    * 如果你想排除一些文件  
    * 举俩🌰 `type.d.ts`, `interface.ts`

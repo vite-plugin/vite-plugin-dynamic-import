@@ -40,10 +40,11 @@ dynamicImport([options])
 export interface Options {
   filter?: (id: string) => false | void
   /**
-   * This option will change `./*` to `./** /*`
+   * 1. `true` - Match all possibilities as much as possible, more like `webpack`
+   * 2. `false` - It behaves more like `@rollup/plugin-dynamic-import-vars`
    * @default true
    */
-  depth?: boolean
+  loose?: boolean
   /**
    * If you want to exclude some files  
    * e.g `type.d.ts`, `interface.ts`
