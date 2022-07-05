@@ -27,9 +27,15 @@ export * as utils from './utils'
 export interface Options {
   filter?: (id: string) => false | void
   /**
+   * ```
    * 1. `true` - Match all possibilities as much as possible, more like `webpack`
+   * see https://webpack.js.org/guides/dependency-management/#require-with-expression
+   * 
    * 2. `false` - It behaves more like `@rollup/plugin-dynamic-import-vars`
-   * @default true
+   * see https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#how-it-works
+   * 
+   * default true
+   * ```
    */
   loose?: boolean
   /**

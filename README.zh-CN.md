@@ -41,9 +41,15 @@ dynamicImport([options])
 export interface Options {
   filter?: (id: string) => false | void
   /**
+   * ```
    * 1. `true` - 尽量匹配所有可能场景, 功能更像 `webpack`
+   * 链接 https://webpack.js.org/guides/dependency-management/#require-with-expression
+   * 
    * 2. `false` - 功能更像rollup的 `@rollup/plugin-dynamic-import-vars`插件
-   * @default true
+   * 链接 https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#how-it-works
+   * 
+   * default true
+   * ```
    */
   loose?: boolean
   /**
