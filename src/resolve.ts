@@ -82,7 +82,7 @@ export class Resolve {
       if (fs.existsSync(fullPath)) {
         find = level
         const normalId = normalizePath(importer)
-        let relp = path.posix.relative(path.dirname(normalId), node_modules)
+        let relp = normalizePath(path.relative(path.dirname(normalId), node_modules))
         if (relp === '') {
           relp = '.'
         }
@@ -121,12 +121,12 @@ export class Resolve {
 
       // compatible with vite restrictions
       // https://github.com/vitejs/vite/blob/1e9615d8614458947a81e0d4753fe61f3a277cb3/packages/vite/src/node/plugins/importAnalysis.ts#L672
-      let relativePath = path.posix.relative(
+      let relativePath = normalizePath(path.relative(
         // Usually, the `replacement` we use is the directory path
         // So we also use the `path.dirname` path for calculation
         path.dirname(/* 🚧-① */normalId),
         normalReplacement,
-      )
+      ))
       if (relativePath === '') {
         relativePath = /* 🚧-② */'.'
       }
