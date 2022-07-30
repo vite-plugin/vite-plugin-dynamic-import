@@ -19,9 +19,16 @@ import {
 import { type Resolved, Resolve } from './resolve'
 import { dynamicImportToGlob } from './dynamic-import-to-glob'
 
-export * from './dynamic-import-to-glob'
-export * from './resolve'
-export * as utils from './utils'
+// Public utils
+export { dynamicImportToGlob } from './dynamic-import-to-glob'
+export {
+  type Resolved,
+  Resolve,
+} from './resolve'
+export {
+  toLooseGlob,
+  mappingPath,
+} from './utils'
 
 export interface Options {
   filter?: (id: string) => false | void
