@@ -52,7 +52,7 @@ export class Resolve {
       a => a.find instanceof RegExp
         ? a.find.test(ipte)
         // https://github.com/rollup/plugins/blob/8fadc64c679643569239509041a24a9516baf340/packages/alias/src/index.ts#L16
-        : ipte.startsWith(a.find + '/')
+        : ipte.startsWith(a.find + /* 🚧-④ */'/')
     )
     if (!alias) return
 
@@ -77,16 +77,17 @@ export class Resolve {
 
     // Find the last level of effective path step by step
     let p: string; while (p = paths.shift()) {
-      level = path.join(level, p)
+      level = path.posix.join(level, p)
       const fullPath = path.join(node_modules, level)
       if (fs.existsSync(fullPath)) {
         find = level
-        const normalId = normalizePath(importer)
-        let relativePath = normalizePath(path.relative(path.dirname(normalId), node_modules))
-        if (!relativePath.startsWith('.')) {
-          relativePath = /* 🚧-② */`./${relativePath}`
+        let relativePath = path.posix.relative(path.dirname(importer), node_modules)
+        // Nearest path and node_modules sibling
+        // e.g. `ui-lib/${theme}/style.css` -> `./node_modules/ui-lib/${theme}/style.css`
+        if (relativePath === '') {
+          relativePath = /* 🚧-② */'.'
         }
-        replacement = normalizePath(`${relativePath}/${level}`)
+        replacement = `${relativePath}/${level}`
       }
     }
     if (!find) return
@@ -115,26 +116,21 @@ export class Resolve {
       // relative path
       ipte = ipte.replace(find, replacement)
     } else {
-      // to calculate the relative path
-      const normalId = normalizePath(importer)
-      const normalReplacement = normalizePath(replacement)
-
       // compatible with vite restrictions
       // https://github.com/vitejs/vite/blob/1e9615d8614458947a81e0d4753fe61f3a277cb3/packages/vite/src/node/plugins/importAnalysis.ts#L672
-      let relativePath = normalizePath(path.relative(
+      let relativePath = path.posix.relative(
         // Usually, the `replacement` we use is the directory path
         // So we also use the `path.dirname` path for calculation
-        path.dirname(/* 🚧-① */normalId),
-        normalReplacement,
-      ))
-      if (!relativePath.startsWith('.')) {
+        path.dirname(/* 🚧-① */importer),
+        normalizePath(replacement),
+      )
+      if (relativePath === '') {
+        relativePath = /* 🚧-② */'.'
+      } else if (!relativePath.startsWith('.')) {
         relativePath = /* 🚧-② */`./${relativePath}`
       }
-      const relativeImportee = normalizePath(`${relativePath}/${ipte}`)
-        .replace(find, '')
-        // remove the beginning /
-        .replace(/^\//, '')
-      ipte = relativeImportee
+      ipte = ipte.replace(find instanceof RegExp ? find : find + /* 🚧-④ */'/', '')
+      ipte = `${relativePath}/${ipte}`
     }
 
     return {
