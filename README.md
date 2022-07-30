@@ -8,9 +8,10 @@ Enhance Vite builtin dynamic import
 
 English | [简体中文](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/README.zh-CN.md)
 
-✅ alias  
-✅ bare module(node_modules)  
-✅ compatible `@rollup/plugin-dynamic-import-vars` [limitations](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations)  
+✅ Alias  
+✅ Bare module(node_modules)  
+✅ Compatible `@rollup/plugin-dynamic-import-vars` [limitations](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations)  
+✅ Webpack-like behavior  
 
 ## Install
 
