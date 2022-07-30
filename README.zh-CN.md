@@ -8,9 +8,10 @@
 
 [English](https://github.com/vite-plugin/vite-plugin-dynamic-import#readme) | 简体中文
 
-✅ alias  
-✅ bare module(node_modules)  
-✅ 兼容 `@rollup/plugin-dynamic-import-vars` [限制](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations)     
+✅ Alias  
+✅ Bare module(node_modules)  
+✅ 兼容 `@rollup/plugin-dynamic-import-vars` [限制](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations)  
+✅ 更像 Webpack  
 
 ## 安装
 
