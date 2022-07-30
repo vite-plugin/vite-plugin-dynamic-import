@@ -123,6 +123,28 @@ export function toDepthGlob(glob: string): string {
   return glob.replace(/^(.*)\/\*(?!\*)/, '$1/**/*')
 }
 
+// `*` -> `**/*`
+export function toLooseGlob(glob: string): string {
+  if (glob.includes('**')) return glob
+
+  const ext = path.extname(glob)
+  if (ext) {
+    glob = glob.replace(ext, '')
+  }
+
+  if (glob.endsWith('/*')) {
+    // `./foo/*` -> `./foo/**/*`
+    // `./foo/*.js` -> `./foo/**/*.js`
+    glob += '*/*'
+  } else if (glob.endsWith('*')) {
+    // `./foo*` -> `./foo*/**/*`
+    // `./foo*.js` -> `./foo*/**/*.js`
+    glob += '/**/*'
+  }
+
+  return glob + ext
+}
+
 /**
  * e.g. `src/foo/index.js` and has alias(@)
  * 
