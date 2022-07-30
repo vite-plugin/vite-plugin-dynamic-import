@@ -14,8 +14,7 @@ import {
   simpleWalk,
   viteIgnoreRE,
   mappingPath,
-  tryFixGlobSlash,
-  toDepthGlob,
+  toLooseGlob,
 } from './utils'
 import { type Resolved, Resolve } from './resolve'
 import { dynamicImportToGlob } from './dynamic-import-to-glob'
@@ -113,7 +112,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
             id,
             resolve,
             globExtensions,
-            options.loose === false ? false : true,
+            options.loose !== false,
           )
           if (!globResult) return
 
@@ -169,7 +168,7 @@ async function globFiles(
   importer: string,
   resolve: Resolve,
   extensions: string[],
-  depth = true,
+  loose = true,
 ): Promise<{
   files?: string[]
   resolved?: Resolved
@@ -220,8 +219,7 @@ async function globFiles(
     return
   }
 
-  glob = tryFixGlobSlash(glob)
-  depth !== false && (glob = toDepthGlob(glob))
+  loose && (glob = toLooseGlob(glob))
   glob.includes(PAHT_FILL) && (glob = glob.replace(PAHT_FILL, ''))
   glob.endsWith(EXT_FILL) && (glob = glob.replace(EXT_FILL, ''))
 
