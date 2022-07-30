@@ -107,6 +107,9 @@ export class MagicString {
   }
 }
 
+/**
+ * @deprecated
+ */
 // In some cases, glob may not be available
 // e.g. (fill necessary slash)
 //   `./foo*` -> `./foo/*`
@@ -115,6 +118,9 @@ export function tryFixGlobSlash(glob: string): string {
   return glob.replace(/(?<![\*\/])(\*)/g, '/$1')
 }
 
+/**
+ * @deprecated
+ */
 // Match as far as possible
 // e.g.
 //   `./foo/*` -> `./foo/**/*`
@@ -123,7 +129,9 @@ export function toDepthGlob(glob: string): string {
   return glob.replace(/^(.*)\/\*(?!\*)/, '$1/**/*')
 }
 
-// `*` -> `**/*`
+/**
+ * `*` -> `** /*`
+ */
 export function toLooseGlob(glob: string): string {
   if (glob.includes('**')) return glob
 
