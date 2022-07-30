@@ -1,4 +1,16 @@
 
+## [2022-07-30] v1.1.0
+
+- ec5af88 docs: update
+- f0ce5c5 chore(break): public utils
+- fd3653d chore: comments
+- 773a13d refactor: use `toLooseGlob()`
+- 8efeffd feat: `toLooseGlob()`
+- 1b22850 fix(🐞): use `path.posix`
+- 1392dec chore(enhance): use normalizePath
+- 8ba41e2 Merge pull request #22 from shooterRao/patch-1
+- 364f449 fix: use normalizePath instead of path.posix
+
 ## [2022-07-04] v1.0.0
 
 - 71af433 docs: v1.0.0
