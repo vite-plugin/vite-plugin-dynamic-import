@@ -82,11 +82,11 @@ export class Resolve {
       if (fs.existsSync(fullPath)) {
         find = level
         const normalId = normalizePath(importer)
-        let relp = normalizePath(path.relative(path.dirname(normalId), node_modules))
-        if (relp === '') {
-          relp = '.'
+        let relativePath = normalizePath(path.relative(path.dirname(normalId), node_modules))
+        if (!relativePath.startsWith('.')) {
+          relativePath = /* 🚧-② */`./${relativePath}`
         }
-        replacement = relp + '/' + level
+        replacement = normalizePath(`${relativePath}/${level}`)
       }
     }
     if (!find) return
@@ -127,10 +127,10 @@ export class Resolve {
         path.dirname(/* 🚧-① */normalId),
         normalReplacement,
       ))
-      if (relativePath === '') {
-        relativePath = /* 🚧-② */'.'
+      if (!relativePath.startsWith('.')) {
+        relativePath = /* 🚧-② */`./${relativePath}`
       }
-      const relativeImportee = relativePath + '/' + ipte
+      const relativeImportee = normalizePath(`${relativePath}/${ipte}`)
         .replace(find, '')
         // remove the beginning /
         .replace(/^\//, '')
