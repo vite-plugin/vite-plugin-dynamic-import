@@ -130,9 +130,9 @@ export function toDepthGlob(glob: string): string {
 }
 
 /**
- * `*` -> `** /*`
+ * Unlimit depth match
  */
-export function toLooseGlob(glob: string): string {
+export function toLooseGlob(glob: string): string | string[] {
   if (glob.includes('**')) return glob
 
   const ext = path.extname(glob)
@@ -143,11 +143,13 @@ export function toLooseGlob(glob: string): string {
   if (glob.endsWith('/*')) {
     // `./foo/*` -> `./foo/**/*`
     // `./foo/*.js` -> `./foo/**/*.js`
-    glob += '*/*'
-  } else if (glob.endsWith('*')) {
-    // `./foo*` -> `./foo*/**/*`
-    // `./foo*.js` -> `./foo*/**/*.js`
-    glob += '/**/*'
+    return glob + '*/*' + ext
+  }
+
+  if (glob.endsWith('*')) {
+    // `./foo*` -> [`./foo*`, `./foo*/**/*`]
+    // `./foo*.js` -> [`./foo*.js`, `./foo*/**/*.js`]
+    return [glob + ext, glob + '/**/*' + ext]
   }
 
   return glob + ext
