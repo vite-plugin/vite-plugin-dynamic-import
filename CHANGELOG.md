@@ -1,4 +1,15 @@
 
+## [2022-08-04] v1.1.1
+
+- 🌱 better glob (8b0a5c0)
+
+  ```js
+  src > utils.ts > toLooseGlob(glob)
+
+  foo* -> [foo*, foo*/**/*]
+  foo*.js -> [foo*.js, foo*/**/*.js]
+  ```
+
 ## [2022-07-30] v1.1.0
 
 - ec5af88 docs: update
