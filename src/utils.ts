@@ -112,8 +112,8 @@ export class MagicString {
  */
 // In some cases, glob may not be available
 // e.g. (fill necessary slash)
-//   `./foo*` -> `./foo/*`
-//   `./foo*.js` -> `./foo/*.js`
+//   foo* -> foo/*
+//   foo*.js -> foo/*.js
 export function tryFixGlobSlash(glob: string): string {
   return glob.replace(/(?<![\*\/])(\*)/g, '/$1')
 }
@@ -123,16 +123,16 @@ export function tryFixGlobSlash(glob: string): string {
  */
 // Match as far as possible
 // e.g.
-//   `./foo/*` -> `./foo/**/*`
-//   `./foo/*.js` -> `./foo/**/*.js`
+//   foo/* -> foo/**/*
+//   foo/*.js -> foo/**/*.js
 export function toDepthGlob(glob: string): string {
   return glob.replace(/^(.*)\/\*(?!\*)/, '$1/**/*')
 }
 
 /**
- * `*` -> `** /*`
+ * Unlimit depth match
  */
-export function toLooseGlob(glob: string): string {
+export function toLooseGlob(glob: string): string | string[] {
   if (glob.includes('**')) return glob
 
   const ext = path.extname(glob)
@@ -141,13 +141,15 @@ export function toLooseGlob(glob: string): string {
   }
 
   if (glob.endsWith('/*')) {
-    // `./foo/*` -> `./foo/**/*`
-    // `./foo/*.js` -> `./foo/**/*.js`
-    glob += '*/*'
-  } else if (glob.endsWith('*')) {
-    // `./foo*` -> `./foo*/**/*`
-    // `./foo*.js` -> `./foo*/**/*.js`
-    glob += '/**/*'
+    // foo/* -> foo/**/*
+    // foo/*.js -> foo/**/*.js
+    return glob + '*/*' + ext
+  }
+
+  if (glob.endsWith('*')) {
+    // foo* -> [foo*, foo*/**/*]
+    // foo*.js -> [foo*.js, foo*/**/*.js]
+    return [glob + ext, glob + '/**/*' + ext]
   }
 
   return glob + ext
