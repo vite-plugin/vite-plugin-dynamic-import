@@ -15,6 +15,7 @@ import {
   viteIgnoreRE,
   mappingPath,
   toLooseGlob,
+  relativeify
 } from './utils'
 import { type Resolved, Resolve } from './resolve'
 import { dynamicImportToGlob } from './dynamic-import-to-glob'
@@ -134,8 +135,11 @@ export default function dynamicImport(options: Options = {}): Plugin {
             ms.overwrite(node.start, node.end, `import('${normally}')`)
           } else {
             if (!files?.length) return
+            const mapAlias = resolved
+              ? { [resolved.alias.relative]: resolved.alias.findString }
+              : undefined
 
-            const maps = mappingPath(files, resolved)
+            const maps = mappingPath(files, mapAlias)
             const runtimeName = `__variableDynamicImportRuntime${dynamicImportIndex++}__`
             const runtimeFn = generateDynamicImportRuntime(maps, runtimeName)
 
@@ -256,7 +260,7 @@ async function globFiles(
 
   files = fastGlob
     .sync(fileGlobs, { cwd: /* 🚧-① */path.dirname(importer) })
-    .map(file => !file.startsWith('.') ? /* 🚧-② */`./${file}` : file)
+    .map(file => relativeify(file))
 
   return { files, resolved }
 }
