@@ -48,7 +48,7 @@ export async function simpleWalk(
   visitors: {
     [type: string]: (node: AcornNode) => void | Promise<void>,
   }) {
-  if (!ast) return;
+  if (!ast) return
 
   if (Array.isArray(ast)) {
     for (const element of ast as AcornNode[]) {
