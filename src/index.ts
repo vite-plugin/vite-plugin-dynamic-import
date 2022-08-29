@@ -15,6 +15,7 @@ import {
   viteIgnoreRE,
   mappingPath,
   toLooseGlob,
+  relativeify
 } from './utils'
 import { type Resolved, Resolve } from './resolve'
 import { dynamicImportToGlob } from './dynamic-import-to-glob'
@@ -71,8 +72,8 @@ export default function dynamicImport(options: Options = {}): Plugin {
       globExtensions = config.resolve?.extensions || extensions
       resolve = new Resolve(_config)
     },
-    async transform(code, id) {
-      const pureId = cleanUrl(id)
+    async transform(code, importer) {
+      const pureId = cleanUrl(importer)
 
       if (/node_modules\/(?!\.vite\/)/.test(pureId)) return
       if (!extensions.includes(path.extname(pureId))) return
@@ -105,7 +106,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
             // normally importee
             if (normallyImporteeRE.test(importee)) return
 
-            const rsld = await resolve.tryResolve(importee, id)
+            const rsld = await resolve.tryResolve(importee, importer)
             // alias or bare
             if (rsld && normallyImporteeRE.test(rsld.import.resolved)) {
               ms.overwrite(node.start, node.end, `import("${rsld.import.resolved}")`)
@@ -116,7 +117,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
           const globResult = await globFiles(
             node,
             code,
-            id,
+            importer,
             resolve,
             globExtensions,
             options.loose !== false,
@@ -125,17 +126,20 @@ export default function dynamicImport(options: Options = {}): Plugin {
 
           let { files, resolved, normally } = globResult
           // skip itself
-          files = files.filter(f => path.join(path.dirname(id), f) !== id)
+          files = files.filter(f => path.join(path.dirname(importer), f) !== importer)
           // execute the Options.onFiles
-          options.onFiles && (files = options.onFiles(files, id) || files)
+          options.onFiles && (files = options.onFiles(files, importer) || files)
 
           if (normally) {
             // normally importee (🚧-③ After `expressiontoglob()` processing)
             ms.overwrite(node.start, node.end, `import('${normally}')`)
           } else {
             if (!files?.length) return
+            const mapAlias = resolved
+              ? { [resolved.alias.relative]: resolved.alias.findString }
+              : undefined
 
-            const maps = mappingPath(files, resolved)
+            const maps = mappingPath(files, mapAlias)
             const runtimeName = `__variableDynamicImportRuntime${dynamicImportIndex++}__`
             const runtimeFn = generateDynamicImportRuntime(maps, runtimeName)
 
@@ -256,7 +260,7 @@ async function globFiles(
 
   files = fastGlob
     .sync(fileGlobs, { cwd: /* 🚧-① */path.dirname(importer) })
-    .map(file => !file.startsWith('.') ? /* 🚧-② */`./${file}` : file)
+    .map(file => relativeify(file))
 
   return { files, resolved }
 }

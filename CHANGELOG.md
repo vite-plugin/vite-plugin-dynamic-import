@@ -1,4 +1,10 @@
 
+## [2022-08-29] v1.2.0
+
+- 03dd17e refactor: mappingPath update params. alias instead resolved
+- 5bc8537 feat: add relativeify
+- 8ecf926 feat: add findString, relative into Resolved
+
 ## [2022-08-04] v1.1.1
 
 - 🌱 better glob (8b0a5c0)

@@ -1,7 +1,6 @@
 import path from 'path'
 import type { AcornNode as AcornNode2 } from 'rollup'
 export type AcornNode<T = any> = AcornNode2 & Record<string, T>
-import type { Resolved } from './resolve'
 
 // ------------------------------------------------- RegExp
 
@@ -49,7 +48,7 @@ export async function simpleWalk(
   visitors: {
     [type: string]: (node: AcornNode) => void | Promise<void>,
   }) {
-  if (!ast) return;
+  if (!ast) return
 
   if (Array.isArray(ast)) {
     for (const element of ast as AcornNode[]) {
@@ -168,15 +167,14 @@ export function toLooseGlob(glob: string): string | string[] {
  * }
  * ```
  */
-export function mappingPath(paths: string[], resolved?: Resolved) {
+export function mappingPath(paths: string[], alias?: Record<string, string>) {
   const maps: Record<string, string[]> = {}
   for (const p of paths) {
     let importee = p
-    if (resolved) {
-      const static1 = resolved.import.importee.slice(0, resolved.import.importee.indexOf('*'))
-      const static2 = resolved.import.resolved.slice(0, resolved.import.resolved.indexOf('*'))
+    if (alias) {
+      const [find, replacement] = Object.entries(alias)[0]
       // Recovery alias `./views/*` -> `@/views/*`
-      importee = p.replace(static2, static1)
+      importee = p.replace(find, replacement)
     }
     const ext = path.extname(importee)
 
@@ -191,4 +189,17 @@ export function mappingPath(paths: string[], resolved?: Resolved) {
   }
 
   return maps
+}
+
+/**
+ * 🚧-②
+ */
+ export function relativeify(relative: string) {
+  if (relative === '') {
+    return '.'
+  }
+  if (!relative.startsWith('.')) {
+    return './' + relative
+  }
+  return relative
 }

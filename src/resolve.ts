@@ -5,10 +5,16 @@ import {
   type ResolvedConfig,
   normalizePath,
 } from 'vite'
+import { relativeify } from './utils'
 
 export interface Resolved {
   type: 'alias' | 'bare'
-  alias: Omit<Alias, 'customResolver'>
+  alias: Omit<Alias, 'customResolver'> & {
+    /** stringify of `Alias['find']` */
+    findString: string
+    /** relative path of `Alias['replacement']` */
+    relative: string
+  }
   import: {
     /** 
      * 1. what the user passes in is what it is
@@ -56,9 +62,23 @@ export class Resolve {
     )
     if (!alias) return
 
+    const findString = alias.find instanceof RegExp
+      ? alias.find.exec(importee)[0]
+      : alias.find
+    const relativePath = alias.replacement.startsWith('.')
+      ? alias.replacement
+      : relativeify(path.posix.relative(path.dirname(importer), alias.replacement))
+    const resolvedAlias: Resolved['alias'] = {
+      ...alias,
+      findString,
+      relative: findString.endsWith('/')
+        ? (relativePath.endsWith('/') ? relativePath : relativePath + '/')
+        : relativePath,
+    }
+
     return {
       type: 'alias',
-      ...this.resolveAlias(importeeRaw, importer, alias),
+      ...this.resolveAlias(importeeRaw, importer, resolvedAlias),
     }
   }
 
@@ -81,19 +101,23 @@ export class Resolve {
       const fullPath = path.join(node_modules, level)
       if (fs.existsSync(fullPath)) {
         find = level
-        let relativePath = path.posix.relative(path.dirname(importer), node_modules)
+        const relativePath = relativeify(path.posix.relative(path.dirname(importer), node_modules))
         // Nearest path and node_modules sibling
         // e.g. `ui-lib/${theme}/style.css` -> `./node_modules/ui-lib/${theme}/style.css`
-        if (relativePath === '') {
-          relativePath = /* 🚧-② */'.'
-        }
         replacement = `${relativePath}/${level}`
       }
     }
     if (!find) return
 
     // Fake the bare module of node_modules into alias, and `replacement` here is a relative path
-    const alias: Alias = { find, replacement }
+    const alias: Resolved['alias'] = {
+      find,
+      replacement,
+      findString: find,
+      relative: replacement.startsWith('.')
+        ? replacement
+        : relativeify(path.posix.relative(path.dirname(importer), replacement)),
+    }
     return {
       type: 'bare',
       ...this.resolveAlias(importeeRaw, importer, alias)
@@ -103,7 +127,7 @@ export class Resolve {
   private resolveAlias(
     importee: string,
     importer: string,
-    alias: Alias,
+    alias: Resolved['alias'],
   ): Omit<Resolved, 'type'> {
     const { find, replacement } = alias
     let {
@@ -118,17 +142,12 @@ export class Resolve {
     } else {
       // compatible with vite restrictions
       // https://github.com/vitejs/vite/blob/1e9615d8614458947a81e0d4753fe61f3a277cb3/packages/vite/src/node/plugins/importAnalysis.ts#L672
-      let relativePath = path.posix.relative(
+      const relativePath = relativeify(path.posix.relative(
         // Usually, the `replacement` we use is the directory path
         // So we also use the `path.dirname` path for calculation
         path.dirname(/* 🚧-① */importer),
         normalizePath(replacement),
-      )
-      if (relativePath === '') {
-        relativePath = /* 🚧-② */'.'
-      } else if (!relativePath.startsWith('.')) {
-        relativePath = /* 🚧-② */`./${relativePath}`
-      }
+      ))
       ipte = ipte.replace(find instanceof RegExp ? find : find + /* 🚧-④ */'/', '')
       ipte = `${relativePath}/${ipte}`
     }
