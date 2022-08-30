@@ -72,13 +72,11 @@ export default function dynamicImport(options: Options = {}): Plugin {
       globExtensions = config.resolve?.extensions || extensions
       resolve = new Resolve(_config)
     },
-    async transform(code, importer) {
-      const pureId = cleanUrl(importer)
-
-      if (/node_modules\/(?!\.vite\/)/.test(pureId)) return
-      if (!extensions.includes(path.extname(pureId))) return
+    async transform(code, id) {
+      if (/node_modules\/(?!\.vite\/)/.test(id)) return
+      if (!extensions.includes(path.extname(id))) return
       if (!hasDynamicImport(code)) return
-      if (options.filter?.(pureId) === false) return
+      if (options.filter?.(id) === false) return
 
       const ast = this.parse(code)
       const ms = new MagicString(code)
@@ -94,7 +92,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
           if (viteIgnoreRE.test(importStatement)) return
 
           // the user explicitly ignore this import
-          if (options.viteIgnore?.(importeeRaw, pureId)) {
+          if (options.viteIgnore?.(importeeRaw, id)) {
             ms.overwrite(node.source.start, node.source.start, '/*@vite-ignore*/') // append left
             return
           }
@@ -106,7 +104,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
             // normally importee
             if (normallyImporteeRE.test(importee)) return
 
-            const rsld = await resolve.tryResolve(importee, importer)
+            const rsld = await resolve.tryResolve(importee, id)
             // alias or bare
             if (rsld && normallyImporteeRE.test(rsld.import.resolved)) {
               ms.overwrite(node.start, node.end, `import("${rsld.import.resolved}")`)
@@ -117,7 +115,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
           const globResult = await globFiles(
             node,
             code,
-            importer,
+            id,
             resolve,
             globExtensions,
             options.loose !== false,
@@ -126,9 +124,9 @@ export default function dynamicImport(options: Options = {}): Plugin {
 
           let { files, resolved, normally } = globResult
           // skip itself
-          files = files.filter(f => path.join(path.dirname(importer), f) !== importer)
+          files = files.filter(f => path.join(path.dirname(id), f) !== id)
           // execute the Options.onFiles
-          options.onFiles && (files = options.onFiles(files, importer) || files)
+          options.onFiles && (files = options.onFiles(files, id) || files)
 
           if (normally) {
             // normally importee (🚧-③ After `expressiontoglob()` processing)
