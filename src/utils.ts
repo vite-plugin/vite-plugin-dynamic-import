@@ -26,28 +26,38 @@ export function hasDynamicImport(code: string) {
 
 /**
  * Unlimit depth match
+ * @todo Use RegExp refactor
  */
 export function toLooseGlob(glob: string): string | string[] {
   if (glob.includes('**')) return glob
 
-  const ext = path.extname(glob)
-  if (ext) {
-    glob = glob.replace(ext, '')
+  const lastIndex = glob.lastIndexOf('*')
+  let tail = ''
+
+  if (lastIndex > -1) {
+    // foo*.js     -> glob=foo*  | tail=.js
+    // foo/*.js    -> glob=foo/* | tail=.js
+    // foo*bar.js  -> glob=foo*  | tail=bar.js
+    // foo*/bar.js -> glob=foo*  | tail=/bar.js
+    tail = glob.slice(lastIndex + 1)
+    glob = glob.slice(0, lastIndex + 1)
   }
 
   if (glob.endsWith('/*')) {
-    // foo/* -> foo/**/*
+    // foo/*    -> foo/**/*
     // foo/*.js -> foo/**/*.js
-    return glob + '*/*' + ext
+    return glob + '*/*' + tail
   }
 
   if (glob.endsWith('*')) {
-    // foo* -> [foo*, foo*/**/*]
-    // foo*.js -> [foo*.js, foo*/**/*.js]
-    return [glob + ext, glob + '/**/*' + ext]
+    // foo*        -> [foo*, foo*/**/*]
+    // foo*.js     -> [foo*.js, foo*/**/*.js]
+    // foo*bar.js  -> [foo*bar.js, foo*/**/bar.js]
+    // foo*/bar.js -> [foo*/bar.js, foo*/**/bar.js]
+    return [glob + tail, glob + '/**' + (tail.startsWith('/') ? tail : '/*' + tail)] // 🚨 No strict
   }
 
-  return glob + ext
+  return glob + tail
 }
 
 /**
