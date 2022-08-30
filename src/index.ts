@@ -3,19 +3,19 @@ import type { AcornNode as AcornNode2 } from 'rollup'
 export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 import type { Plugin, ResolvedConfig } from 'vite'
 import fastGlob from 'fast-glob'
+import { DEFAULT_EXTENSIONS } from 'vite-plugin-utils/constant'
+import {
+  MagicString,
+  walk,
+  relativeify,
+} from 'vite-plugin-utils/function'
 
 import {
-  JS_EXTENSIONS,
-  KNOWN_SFC_EXTENSIONS,
-  MagicString,
-  cleanUrl,
   hasDynamicImport,
   normallyImporteeRE,
-  simpleWalk,
   viteIgnoreRE,
   mappingPath,
   toLooseGlob,
-  relativeify
 } from './utils'
 import { type Resolved, Resolve } from './resolve'
 import { dynamicImportToGlob } from './dynamic-import-to-glob'
@@ -60,17 +60,17 @@ export interface Options {
 const PLUGIN_NAME = 'vite-plugin-dynamic-import'
 
 export default function dynamicImport(options: Options = {}): Plugin {
-  const extensions = JS_EXTENSIONS.concat(KNOWN_SFC_EXTENSIONS)
-  let globExtensions: string[]
   let config: ResolvedConfig
   let resolve: Resolve
+  let extensions = DEFAULT_EXTENSIONS
 
   return {
     name: PLUGIN_NAME,
     configResolved(_config) {
       config = _config
-      globExtensions = config.resolve?.extensions || extensions
       resolve = new Resolve(_config)
+      // https://github.com/vitejs/vite/blob/37ac91e5f680aea56ce5ca15ce1291adc3cbe05e/packages/vite/src/node/plugins/resolve.ts#L450
+      if (config.resolve?.extensions) extensions = config.resolve.extensions
     },
     async transform(code, id) {
       if (/node_modules\/(?!\.vite\/)/.test(id)) return
@@ -83,7 +83,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
       let dynamicImportIndex = 0
       const runtimeFunctions: string[] = []
 
-      await simpleWalk(ast, {
+      await walk(ast, {
         async ImportExpression(node: AcornNode) {
           const importStatement = code.slice(node.start, node.end)
           const importeeRaw = code.slice(node.source.start, node.source.end)
@@ -117,7 +117,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
             code,
             id,
             resolve,
-            globExtensions,
+            extensions,
             options.loose !== false,
           )
           if (!globResult) return

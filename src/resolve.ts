@@ -5,7 +5,7 @@ import {
   type ResolvedConfig,
   normalizePath,
 } from 'vite'
-import { relativeify } from './utils'
+import { relativeify } from 'vite-plugin-utils/function'
 
 export interface Resolved {
   type: 'alias' | 'bare'
