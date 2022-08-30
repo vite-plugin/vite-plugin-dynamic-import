@@ -11,6 +11,7 @@
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && tsc",
+    "dev": "rm -rf dist && tsc --watch",
     "test": "vite -c test/vite.config.ts",
     "prepublishOnly": "npm run build"
   },
