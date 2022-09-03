@@ -1,4 +1,8 @@
 
+## [2022-09-03] v1.2.1
+
+- 5940444 feat(🌱): support "type": "module"
+
 ## [2022-08-29] v1.2.0
 
 - 03dd17e refactor: mappingPath update params. alias instead resolved
