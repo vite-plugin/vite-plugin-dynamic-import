@@ -1,13 +1,10 @@
-const fs = require('fs');
-const path = require('path');
 const os = require('os');
 const cp = require('child_process');
-const { build } = require('vite');
 
 const TAG = '[build]';
 const isdev = process.argv.slice(2).includes('--watch');
 
-;(async () => {
+; (async () => {
   if (isdev) {
     dev();
   } else {
@@ -26,7 +23,7 @@ function dev() {
 /**
  * @type {() => Promise<(number | null)[]>}
  */
- function build() {
+function build() {
   return new Promise(resolve => {
     const status = [undefined, undefined];
     const done = () => {
@@ -47,13 +44,13 @@ function dev() {
 
 function run(args = []) {
   const npm = os.platform() === 'win32' ? 'npm.cmd' : 'npm';
-  return cp.spawn(npm, ['run'].concat(args));；；
+  return cp.spawn(npm, ['run'].concat(args));
 }
 
 /**
  * @type {(cp: import('child_process').ChildProcessWithoutNullStreams) => typeof cp}
  */
- function stdio(cp) {
+function stdio(cp) {
   cp.stdout.on('data', chunk => console.log(TAG, chunk.toString()));
   cp.stderr.on('data', chunk => console.error(TAG, chunk.toString()));
   return cp;
@@ -62,7 +59,7 @@ function run(args = []) {
 /**
  * @type {(cp: import('child_process').ChildProcessWithoutNullStreams) => typeof cp}
  */
- function error(cp) {
+function error(cp) {
   cp.on('error', error => {
     console.error(TAG, error);
     process.exit(1);
