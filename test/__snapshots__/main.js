@@ -59,7 +59,10 @@
   ];
   for (const view of views) {
     Object.entries(view).forEach(([className, cb]) => {
-      document.querySelector(`.${className}`).addEventListener("click", cb);
+      document.querySelector(`.${className}`).addEventListener("click", (ev) => {
+        ev.target.classList.add("active");
+        cb(ev);
+      });
     });
   }
 })();
