@@ -1,8 +1,14 @@
 {
   "name": "vite-plugin-dynamic-import",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Enhance Vite builtin dynamic import",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vite-plugin/vite-plugin-dynamic-import.git"
@@ -10,10 +16,14 @@
   "author": "草鞋没号 <308487730@qq.com>",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "dev": "rm -rf dist && tsc --watch",
+    "dev": "node build.js --watch",
+    "dev:es": "vite build --watch",
+    "dev:cjs": "tsc --watch",
+    "build": "node build.js",
+    "build:es": "vite build",
+    "build:cjs": "tsc",
     "test": "vite -c test/vite.config.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "rm -rf dist && npm run build"
   },
   "dependencies": {
     "fast-glob": "~3.2.11",
@@ -31,6 +41,7 @@
     "dynamic"
   ],
   "files": [
-    "dist"
+    "dist",
+    "src"
   ]
 }

@@ -1,4 +1,8 @@
 
+## [2022-09-03] v1.2.1
+
+- 5940444 feat(🌱): support "type": "module" #29
+
 ## [2022-08-30] v1.2.0
 
 - 8941f37 fix(🐞): nested try error #27
