@@ -51,8 +51,8 @@ function run(args = []) {
  * @type {(cp: import('child_process').ChildProcessWithoutNullStreams) => typeof cp}
  */
 function stdio(cp) {
-  cp.stdout.on('data', chunk => console.log(TAG, chunk.toString()));
-  cp.stderr.on('data', chunk => console.error(TAG, chunk.toString()));
+  cp.stdout.pipe(process.stdout);
+  cp.stderr.pipe(process.stderr);
   return cp;
 }
 
