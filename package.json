@@ -30,8 +30,8 @@
   "devDependencies": {
     "@types/node": "^17.0.33",
     "fast-glob": "^3.2.11",
-    "typescript": "^4.6.4",
-    "vite": "^2.9.9",
+    "typescript": "^4.7.4",
+    "vite": "^3.0.9",
     "vite-plugin-utils": "^0.3.0"
   },
   "keywords": [
