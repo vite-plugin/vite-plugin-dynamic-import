@@ -1,4 +1,10 @@
 
+## [2022-09-08] v1.2.2
+
+- dab79aa refactor: build cjs with Vite 🌱
+- c319816 bump vite, typescript
+- 238473b move fast-glob, vite-plugin-utils to devDependencies
+
 ## [2022-09-03] v1.2.1
 
 - 5940444 feat(🌱): support "type": "module" #29

@@ -9,8 +9,8 @@ export default defineConfig({
     emptyOutDir: false,
     lib: {
       entry: path.join(__dirname, 'src/index.ts'),
-      formats: ['es'],
-      fileName: () => '[name].mjs',
+      formats: ['es', 'cjs'],
+      fileName: format => format === 'es' ? '[name].mjs' : '[name].js',
     },
     rollupOptions: {
       external: [
