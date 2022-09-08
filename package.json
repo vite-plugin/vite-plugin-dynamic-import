@@ -3,6 +3,7 @@
   "version": "1.2.1",
   "description": "Enhance Vite builtin dynamic import",
   "main": "./dist/index.js",
+  "types": "src",
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -25,14 +26,13 @@
     "test": "vite -c test/vite.config.ts",
     "prepublishOnly": "rm -rf dist && npm run build"
   },
-  "dependencies": {
-    "fast-glob": "~3.2.11",
-    "vite-plugin-utils": "~0.3.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^17.0.33",
+    "fast-glob": "^3.2.11",
     "typescript": "^4.6.4",
-    "vite": "^2.9.9"
+    "vite": "^2.9.9",
+    "vite-plugin-utils": "^0.3.0"
   },
   "keywords": [
     "vite",
