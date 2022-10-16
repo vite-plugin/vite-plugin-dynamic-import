@@ -1,3 +1,8 @@
+## [2022-10-16] v1.2.3
+
+- 7cf1c21 v1.2.3
+- bfaacf3 chore: `"strict": true`
+- ebeaaf3 refactor: optimize build, fix(#35)
 
 ## [2022-09-08] v1.2.2
 

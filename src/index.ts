@@ -84,6 +84,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
       const runtimeFunctions: string[] = []
 
       await walk(ast, {
+        // @ts-ignore
         async ImportExpression(node: AcornNode) {
           const importStatement = code.slice(node.start, node.end)
           const importeeRaw = code.slice(node.source.start, node.source.end)
@@ -124,7 +125,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
 
           let { files, resolved, normally } = globResult
           // skip itself
-          files = files.filter(f => path.join(path.dirname(id), f) !== id)
+          files = files!.filter(f => path.join(path.dirname(id), f) !== id)
           // execute the Options.onFiles
           options.onFiles && (files = options.onFiles(files, id) || files)
 
@@ -190,15 +191,15 @@ async function globFiles(
    * import('@/viewsfoo.js')
    */
   normally?: string
-}> {
+} | undefined> {
   let files: string[]
-  let resolved: Resolved
+  let resolved: Resolved | undefined
   let normally: string
 
   const PAHT_FILL = '####/'
   const EXT_FILL = '.extension'
-  let glob: string
-  let globRaw: string
+  let glob: string | null
+  let globRaw!: string
 
   glob = await dynamicImportToGlob(
     node.source,
@@ -228,8 +229,9 @@ async function globFiles(
     return
   }
 
+  // @ts-ignore
   const globs = [].concat(loose ? toLooseGlob(glob) : glob)
-    .map(g => {
+    .map((g: any) => {
       g.includes(PAHT_FILL) && (g = g.replace(PAHT_FILL, ''))
       g.endsWith(EXT_FILL) && (g = g.replace(EXT_FILL, ''))
       return g

@@ -1,11 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import {
-  type Alias,
-  type ResolvedConfig,
-  normalizePath,
-} from 'vite'
-import { relativeify } from 'vite-plugin-utils/function'
+import type { Alias, ResolvedConfig } from 'vite'
+import { relativeify, normalizePath } from 'vite-plugin-utils/function'
 
 export interface Resolved {
   type: 'alias' | 'bare'
@@ -46,7 +42,7 @@ export class Resolve {
     return await this.tryResolveAlias(importee, importer) || this.tryResolveBare(importee, importer)
   }
 
-  private async tryResolveAlias(importee: string, importer: string): Promise<Resolved> {
+  private async tryResolveAlias(importee: string, importer: string): Promise<Resolved | undefined> {
     const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
     // It may not be elegant here, just to look consistent with the behavior of the Vite
@@ -63,7 +59,7 @@ export class Resolve {
     if (!alias) return
 
     const findString = alias.find instanceof RegExp
-      ? alias.find.exec(importee)[0]
+      ? alias.find.exec(importee)![0]
       : alias.find
     const relativePath = alias.replacement.startsWith('.')
       ? alias.replacement
@@ -82,7 +78,7 @@ export class Resolve {
     }
   }
 
-  private tryResolveBare(importee: string, importer: string): Resolved {
+  private tryResolveBare(importee: string, importer: string): Resolved | undefined {
     const { importee: ipte, importeeRaw = ipte } = this.parseImportee(importee)
 
     // it's relative or absolute path
@@ -93,10 +89,10 @@ export class Resolve {
     const paths = ipte.split('/')
     const node_modules = path.join(this.config.root, 'node_modules')
     let level = ''
-    let find: string, replacement: string
+    let find: string | undefined, replacement!: string
 
     // Find the last level of effective path step by step
-    let p: string; while (p = paths.shift()) {
+    let p: string | undefined; while (p = paths.shift()) {
       level = path.posix.join(level, p)
       const fullPath = path.join(node_modules, level)
       if (fs.existsSync(fullPath)) {

@@ -91,7 +91,7 @@ export function mappingPath(paths: string[], alias?: Record<string, string>) {
       importee.replace(ext, ''),
       // @/foo/index.js
       importee,
-    ].filter(Boolean)
+    ].filter(Boolean) as string[]
   }
 
   return maps

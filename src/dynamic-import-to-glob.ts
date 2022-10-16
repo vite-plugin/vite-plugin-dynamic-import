@@ -88,9 +88,9 @@ export async function dynamicImportToGlob(
    * ```
    */
   resolver?: (glob: string) => string | Promise<string>,
-): Promise<string> {
+): Promise<string | null> {
   let glob = expressionToGlob(node)
-  glob = await resolver(glob) ?? glob
+  glob = await resolver?.(glob) ?? glob
   if (!glob.includes('*') || glob.startsWith('data:')) {
     return null
   }
