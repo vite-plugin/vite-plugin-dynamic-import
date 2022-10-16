@@ -1,11 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import {
-  type Alias,
-  type ResolvedConfig,
-  normalizePath,
-} from 'vite'
-import { relativeify } from 'vite-plugin-utils/function'
+import type { Alias, ResolvedConfig } from 'vite'
+import { relativeify, normalizePath } from 'vite-plugin-utils/function'
 
 export interface Resolved {
   type: 'alias' | 'bare'
