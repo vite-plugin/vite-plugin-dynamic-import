@@ -125,7 +125,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
 
           let { files, resolved, normally } = globResult
           // skip itself
-          files = files!.filter(f => path.join(path.dirname(id), f) !== id)
+          files = files!.filter(f => path.posix.join(path.dirname(id), f) !== id)
           // execute the Options.onFiles
           options.onFiles && (files = options.onFiles(files, id) || files)
 
