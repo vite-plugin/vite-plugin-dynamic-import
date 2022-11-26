@@ -8,6 +8,7 @@ export default defineConfig({
     minify: false,
     outDir: '',
     emptyOutDir: false,
+    target: 'node14',
     lib: {
       entry: path.join(__dirname, 'src/index.ts'),
       formats: ['es', 'cjs'],
