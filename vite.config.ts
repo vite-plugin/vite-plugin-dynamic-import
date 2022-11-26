@@ -21,6 +21,9 @@ export default defineConfig({
           .flat(),
         ...Object.keys(pkg.dependencies),
       ],
+      output: {
+        exports: 'named',
+      },
     },
   },
 })
