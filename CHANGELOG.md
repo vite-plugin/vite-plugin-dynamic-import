@@ -1,3 +1,12 @@
+## [2022-11-26] v1.2.4
+
+- 158b73c v1.2.4
+- 2d64f54 chore: bump deps
+- 9fe053f chore: target node14
+- f2b57dd chore: `node:` prefix
+- 6d8cc95 chore: disable warning
+- 0c5b5e3 fix: BUG on Windows #38
+
 ## [2022-10-16] v1.2.3
 
 - 7cf1c21 v1.2.3
