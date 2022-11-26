@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import type { Alias, ResolvedConfig } from 'vite'
 import { relativeify, normalizePath } from 'vite-plugin-utils/function'
 
@@ -57,13 +57,15 @@ export class Resolve {
         : ipte.startsWith(a.find + /* 🚧-④ */'/')
     )
     if (!alias) return
+    const { find } = alias
+    const replacement = normalizePath(alias.replacement)
 
-    const findString = alias.find instanceof RegExp
-      ? alias.find.exec(importee)![0]
-      : alias.find
-    const relativePath = alias.replacement.startsWith('.')
-      ? alias.replacement
-      : relativeify(path.posix.relative(path.dirname(importer), alias.replacement))
+    const findString = find instanceof RegExp
+      ? find.exec(importee)![0]
+      : find
+    const relativePath = replacement.startsWith('.')
+      ? replacement
+      : relativeify(path.posix.relative(path.dirname(importer), replacement))
     const resolvedAlias: Resolved['alias'] = {
       ...alias,
       findString,
@@ -87,7 +89,7 @@ export class Resolve {
     }
 
     const paths = ipte.split('/')
-    const node_modules = path.join(this.config.root, 'node_modules')
+    const node_modules = path.posix.join(this.config.root, 'node_modules')
     let level = ''
     let find: string | undefined, replacement!: string
 
@@ -125,7 +127,8 @@ export class Resolve {
     importer: string,
     alias: Resolved['alias'],
   ): Omit<Resolved, 'type'> {
-    const { find, replacement } = alias
+    const { find } = alias
+    const replacement = normalizePath(alias.replacement)
     let {
       importee: ipte,
       importeeRaw = ipte,
@@ -142,7 +145,7 @@ export class Resolve {
         // Usually, the `replacement` we use is the directory path
         // So we also use the `path.dirname` path for calculation
         path.dirname(/* 🚧-① */importer),
-        normalizePath(replacement),
+        replacement,
       ))
       ipte = ipte.replace(find instanceof RegExp ? find : find + /* 🚧-④ */'/', '')
       ipte = `${relativePath}/${ipte}`

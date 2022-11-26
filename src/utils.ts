@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import type { AcornNode as AcornNode2 } from 'rollup'
 import {
   singlelineCommentsRE,

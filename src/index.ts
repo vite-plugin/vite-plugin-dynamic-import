@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import type { AcornNode as AcornNode2 } from 'rollup'
 export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 import type { Plugin, ResolvedConfig } from 'vite'
@@ -125,7 +125,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
 
           let { files, resolved, normally } = globResult
           // skip itself
-          files = files!.filter(f => path.join(path.dirname(id), f) !== id)
+          files = files!.filter(f => path.posix.join(path.dirname(id), f) !== id)
           // execute the Options.onFiles
           options.onFiles && (files = options.onFiles(files, id) || files)
 

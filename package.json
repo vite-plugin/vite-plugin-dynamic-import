@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-dynamic-import",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Enhance Vite builtin dynamic import",
   "type": "module",
   "main": "index.js",
@@ -24,13 +24,13 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "fast-glob": "~3.2.11"
+    "fast-glob": "~3.2.12"
   },
   "devDependencies": {
     "@types/node": "^17.0.33",
     "typescript": "^4.7.4",
-    "vite": "^3.2.0-beta.2",
-    "vite-plugin-utils": "^0.3.1"
+    "vite": "^3.2.4",
+    "vite-plugin-utils": "^0.3.6"
   },
   "keywords": [
     "vite",
