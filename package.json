@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-dynamic-import",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Enhance Vite builtin dynamic import",
   "type": "module",
   "main": "index.js",
