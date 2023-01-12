@@ -1,3 +1,8 @@
+## [2023-01-12] v1.2.5
+
+- 95b3076 fix: recursively up lookup of `node_moduels` #41
+- f83c7f3 chore: bump deps
+
 ## [2022-11-26] v1.2.4
 
 - 158b73c v1.2.4
