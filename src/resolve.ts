@@ -1,7 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Alias, ResolvedConfig } from 'vite'
-import { relativeify, normalizePath } from 'vite-plugin-utils/function'
+import {
+  relativeify,
+  normalizePath,
+  node_modules as find_node_modules,
+} from 'vite-plugin-utils/function'
 
 export interface Resolved {
   type: 'alias' | 'bare'
@@ -24,7 +28,7 @@ export interface Resolved {
 }
 
 /**
- * This is different from the resolve of Vite. Which only resolves `node_module` and `alias` into relative paths.  
+ * This is different from the resolve of Vite. Which only resolves `node_modules` and `alias` into relative paths.  
  * 这和 Vite 的 resolve 并不一样，它只是将 node_modules、alias 解析成相对路径  
  */
 export class Resolve {
@@ -89,7 +93,7 @@ export class Resolve {
     }
 
     const paths = ipte.split('/')
-    const node_modules = path.posix.join(this.config.root, 'node_modules')
+    const node_modules = find_node_modules(this.config.root)
     let level = ''
     let find: string | undefined, replacement!: string
 
