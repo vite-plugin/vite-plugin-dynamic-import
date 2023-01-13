@@ -1,3 +1,8 @@
+## [2023-01-13] v1.2.6
+
+- 3a4bfd9 fix: recursively up lookup of `node_moduels` #41
+- 85fbec8 chore: bump vite-plugin-utils to 0.4.0
+
 ## [2023-01-12] v1.2.5
 
 - 95b3076 fix: recursively up lookup of `node_moduels` #41
