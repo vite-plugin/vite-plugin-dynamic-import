@@ -36,6 +36,7 @@ export class Resolve {
   constructor(
     private config: ResolvedConfig,
     private resolve = config.createResolver(),
+    private node_modules_paths = find_node_modules(config.root),
   ) { }
 
   /**
@@ -93,20 +94,22 @@ export class Resolve {
     }
 
     const paths = ipte.split('/')
-    const node_modules = find_node_modules(this.config.root)
     let level = ''
     let find: string | undefined, replacement!: string
 
     // Find the last level of effective path step by step
     let p: string | undefined; while (p = paths.shift()) {
       level = path.posix.join(level, p)
-      const fullPath = path.join(node_modules, level)
-      if (fs.existsSync(fullPath)) {
-        find = level
-        const relativePath = relativeify(path.posix.relative(path.dirname(importer), node_modules))
-        // Nearest path and node_modules sibling
-        // e.g. `ui-lib/${theme}/style.css` -> `./node_modules/ui-lib/${theme}/style.css`
-        replacement = `${relativePath}/${level}`
+      for (const node_modules of this.node_modules_paths) {
+        const fullPath = path.join(node_modules, level)
+        if (fs.existsSync(fullPath)) {
+          find = level
+          const relativePath = relativeify(path.posix.relative(path.dirname(importer), node_modules))
+          // Nearest path and node_modules sibling
+          // e.g. `ui-lib/${theme}/style.css` -> `./node_modules/ui-lib/${theme}/style.css`
+          replacement = `${relativePath}/${level}`
+          break
+        }
       }
     }
     if (!find) return
