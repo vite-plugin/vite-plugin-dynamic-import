@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES2019",
-    "module": "CommonJS",
+    "target": "ES2022",
+    "module": "ESNext",
     "esModuleInterop": true,
     "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "strict": true,
     "allowJs": true,
-    "jsx": "preserve",
-    "baseUrl": ".",
-    "outDir": "dist",
     "declaration": true,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "strict": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "outDir": "types",
+    "emitDeclarationOnly": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src"]
 }
