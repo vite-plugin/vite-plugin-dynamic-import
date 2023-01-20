@@ -1,3 +1,7 @@
+## [2023-01-20] v1.2.7
+
+- 53ecc11 feat: generate types #44
+
 ## [2023-01-13] v1.2.6
 
 - 3a4bfd9 fix: recursively up lookup of `node_moduels` #41

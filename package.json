@@ -1,10 +1,10 @@
 {
   "name": "vite-plugin-dynamic-import",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Enhance Vite builtin dynamic import",
   "type": "module",
   "main": "index.js",
-  "types": "src",
+  "types": "types",
   "exports": {
     ".": {
       "import": "./index.js",
@@ -21,6 +21,7 @@
     "dev": "vite build --watch",
     "build": "vite build",
     "test": "vite -c test/vite.config.ts",
+    "types": "tsc",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -39,7 +40,7 @@
     "dynamic"
   ],
   "files": [
-    "src",
+    "types",
     "index.cjs",
     "index.js"
   ]
