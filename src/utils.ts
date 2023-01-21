@@ -52,9 +52,12 @@ export function toLooseGlob(glob: string): string | string[] {
   if (glob.endsWith('*')) {
     // foo*        -> [foo*, foo*/**/*]
     // foo*.js     -> [foo*.js, foo*/**/*.js]
-    // foo*bar.js  -> [foo*bar.js, foo*/**/bar.js]
+    // foo*bar.js  -> [foo*bar.js, foo*/**/*bar.js]
     // foo*/bar.js -> [foo*/bar.js, foo*/**/bar.js]
-    return [glob + tail, glob + '/**' + (tail.startsWith('/') ? tail : '/*' + tail)] // 🚨 No strict
+    return [
+      glob + tail, // original
+      glob + '/**' + (tail.startsWith('/') ? tail : '/*' + tail), // 🚨 not strict
+    ]
   }
 
   return glob + tail
