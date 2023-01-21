@@ -20,18 +20,21 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "test": "vite -c test/vite.config.ts",
+    "test": "vitest run",
     "types": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run test && npm run build"
   },
   "dependencies": {
     "fast-glob": "^3.2.12"
   },
   "devDependencies": {
+    "@ant-design/icons-svg": "^4.2.1",
     "@types/node": "^18.11.18",
+    "node-fetch": "^3.3.0",
     "typescript": "^4.9.4",
     "vite": "^4.0.4",
-    "vite-plugin-utils": "^0.4.0"
+    "vite-plugin-utils": "^0.4.0",
+    "vitest": "^0.27.2"
   },
   "keywords": [
     "vite",
