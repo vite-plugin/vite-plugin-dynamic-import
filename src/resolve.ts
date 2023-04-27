@@ -147,7 +147,7 @@ export class Resolve {
       ipte = ipte.replace(find, replacement)
     } else {
       // compatible with vite restrictions
-      // https://github.com/vitejs/vite/blob/1e9615d8614458947a81e0d4753fe61f3a277cb3/packages/vite/src/node/plugins/importAnalysis.ts#L672
+      // https://github.com/vitejs/vite/blob/v2.9.15/packages/vite/src/node/plugins/importAnalysis.ts#L714-L717 - 2.x
       const relativePath = relativeify(path.posix.relative(
         // Usually, the `replacement` we use is the directory path
         // So we also use the `path.dirname` path for calculation
@@ -178,8 +178,7 @@ export class Resolve {
       result.importee = importee.slice(1)
       result.importeeRaw = importee
       result.startQuotation = importee.slice(0, 1)
-      // why not `endQuotation` ?
-      // in fact, may be parse `endQuotation` is meaningless
+      // Why not `endQuotation`? May be parse `endQuotation` is meaningless
       // e.g. `import('./foo/' + path)`
     }
     return result
