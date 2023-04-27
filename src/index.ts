@@ -75,11 +75,13 @@ export default function dynamicImport(options: Options = {}): Plugin {
       if (config.resolve?.extensions) extensions = config.resolve.extensions
     },
     async transform(code, id) {
-      // TODO: better handling of `.vite` 🤔
-      if (/node_modules\/(?!\.vite\/)/.test(id) && !options.filter?.(id)) return
-      if (!extensions.includes(path.extname(id))) return
       if (!hasDynamicImport(code)) return
-      if (options.filter?.(id) === false) return
+
+      const userCondition = options.filter?.(id)
+      if (userCondition === false) return
+      // exclude `node_modules` by default
+      // here can only get the files in `node_modules/.vite` and `node_modules/vite/dist/client`
+      if (userCondition !== true && id.includes('node_modules')) return
 
       // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/plugins/dynamicImportVars.ts#L179
       await initParseImports
@@ -126,6 +128,9 @@ export default function dynamicImport(options: Options = {}): Plugin {
 
         // @ts-ignore
         const importExpressionAst: AcornNode = this.parse(importExpression).body[0]./* ImportExpression */expression
+
+        // maybe `import.meta`
+        if (importExpressionAst.type !== 'ImportExpression') continue
 
         if (importExpressionAst.source.type === 'Literal') {
           const importee = rawImportee.slice(1, -1)
