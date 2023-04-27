@@ -59,15 +59,13 @@ export interface Options {
   onResolve?: (rawImportee: string, id: string) => typeof rawImportee | void
 }
 
-const PLUGIN_NAME = 'vite-plugin-dynamic-import'
-
 export default function dynamicImport(options: Options = {}): Plugin {
   let config: ResolvedConfig
   let resolve: Resolve
   let extensions = DEFAULT_EXTENSIONS
 
   return {
-    name: PLUGIN_NAME,
+    name: 'vite-plugin-dynamic-import',
     configResolved(_config) {
       config = _config
       resolve = new Resolve(_config)
