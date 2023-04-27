@@ -1,3 +1,13 @@
+## [2023-04-27] v1.3.0
+
+- 8972bb4 v1.3.0
+- f7a3ab8 doc: v1.3.0
+- b34ada6 test: v1.3.0
+- 2a4f240 chore: comments
+- 17b1eb0 refactor: performance, support node_modules, custom resolve importee
+- 8dd5cac feat: integrate vitest 🌱
+- 2ea165f chore: cleanup
+
 ## [2023-01-20] v1.2.7
 
 - 53ecc11 feat: generate types #44
