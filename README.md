@@ -33,13 +33,27 @@ export default {
 
 cases 👉 [vite-plugin-dynamic-import/test](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/test)
 
+#### node_modules
+
+```js
+dynamicImport({
+  filter(id) {
+    // `node_modules` is exclude by default, so we need to include it explicitly
+    // https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/v1.3.0/src/index.ts#L79
+    if (/node_modules\/(?!\.vite\/)/.test(id)) {
+      return true
+    }
+  }
+})
+```
+
 ## API
 
 dynamicImport([options])
 
 ```ts
 export interface Options {
-  filter?: (id: string) => false | void
+  filter?: (id: string) => boolean | void
   /**
    * ```
    * 1. `true` - Match all possibilities as much as possible, more like `webpack`
@@ -47,9 +61,9 @@ export interface Options {
    * 
    * 2. `false` - It behaves more like `@rollup/plugin-dynamic-import-vars`
    * see https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#how-it-works
-   * 
-   * default true
    * ```
+   * 
+   * @defaultValue true
    */
   loose?: boolean
   /**
@@ -58,10 +72,11 @@ export interface Options {
    */
   onFiles?: (files: string[], id: string) => typeof files | void
   /**
-   * It will add `@vite-ignore`  
-   * `import(/*@vite-ignore* / 'import-path')`
+   * Custom importee
+   * 
+   * e.g. - append `\/*@vite-ignore*\/` in front of importee to bypass to Vite
    */
-  viteIgnore?: (rawImportee: string, id: string) => true | void
+  onResolve?: (rawImportee: string, id: string) => typeof rawImportee | void
 }
 ```
 

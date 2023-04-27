@@ -33,6 +33,19 @@ export default {
 
 案例 👉 [vite-plugin-dynamic-import/test](https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/main/test)
 
+#### node_modules
+
+```js
+dynamicImport({
+  filter(id) {
+    // 默认会排除 `node_modules`，所以必须显式的包含它
+    // https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/v1.3.0/src/index.ts#L79
+    if (/node_modules\/(?!\.vite\/)/.test(id)) {
+      return true
+    }
+  }
+})
+```
 
 ## API
 
@@ -40,7 +53,7 @@ dynamicImport([options])
 
 ```ts
 export interface Options {
-  filter?: (id: string) => false | void
+  filter?: (id: string) => boolean | void
   /**
    * ```
    * 1. `true` - 尽量匹配所有可能场景, 功能更像 `webpack`
@@ -59,10 +72,11 @@ export interface Options {
    */
   onFiles?: (files: string[], id: string) => typeof files | void
   /**
-   * 将会在 import 中添加 `@vite-ignore`  
-   * `import(/*@vite-ignore* / 'import-path')`
+   * 自定义 importee
+   * 
+   * e.g. - 在 importee 前面插入 `\/*@vite-ignore*\/` 绕过 Vite
    */
-  viteIgnore?: (rawImportee: string, id: string) => true | void
+  onResolve?: (rawImportee: string, id: string) => typeof rawImportee | void
 }
 ```
 
