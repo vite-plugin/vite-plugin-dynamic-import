@@ -9,7 +9,11 @@ import {
 import { parse as parseAst } from 'acorn'
 import fastGlob from 'fast-glob'
 import { DEFAULT_EXTENSIONS } from 'vite-plugin-utils/constant'
-import { MagicString, relativeify } from 'vite-plugin-utils/function'
+import {
+  MagicString,
+  cleanUrl,
+  relativeify,
+} from 'vite-plugin-utils/function'
 
 import {
   hasDynamicImport,
@@ -101,7 +105,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
         },
       })
     },
-    async transform(code, id) {
+    transform(code, id) {
       return transformDynamicImport({
         options,
         code,
@@ -126,12 +130,13 @@ async function transformDynamicImport({
   resolve: Resolve,
   extensions: string[],
 }) {
+  if (!(extensions.includes(path.extname(id)) || extensions.includes(path.extname(cleanUrl(id))))) return
   if (!hasDynamicImport(code)) return
 
   const userCondition = options.filter?.(id)
   if (userCondition === false) return
   // exclude `node_modules` by default
-  // here can only get the files in `node_modules/.vite` and `node_modules/vite/dist/client`
+  // here can only get the files in `node_modules/.vite` and `node_modules/vite/dist/client`, others will be handled by Pre-Bundling
   if (userCondition !== true && id.includes('node_modules')) return
 
   // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/plugins/dynamicImportVars.ts#L179
