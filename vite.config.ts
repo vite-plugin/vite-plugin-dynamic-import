@@ -5,31 +5,45 @@ import { builtinModules } from 'node:module'
 import { defineConfig } from 'vite'
 import pkg from './package.json'
 
+const isdev = process.argv.slice(2).includes('--watch')
+
 export default defineConfig({
   build: {
-    emptyOutDir: false,
     minify: false,
-    outDir: '',
-    target: 'node14',
+    emptyOutDir: !isdev,
     lib: {
-      entry: path.join(__dirname, 'src/index.ts'),
-      formats: ['es', 'cjs'],
-      fileName: format => format === 'cjs' ? '[name].cjs' : '[name].js',
+      entry: 'src/index.ts',
+      formats: ['cjs', 'es'],
+      fileName: format => format === 'es' ? '[name].mjs' : '[name].js',
     },
     rollupOptions: {
       external: [
-        ...builtinModules
-          .filter(m => !m.startsWith('_'))
-          .map(m => [m, `node:${m}`])
-          .flat(),
-        ...Object.keys(pkg.dependencies),
+        'vite',
+        ...builtinModules,
+        ...builtinModules.map(m => `node:${m}`),
+        ...Object.keys('dependencies' in pkg ? pkg.dependencies as object : {}),
       ],
       output: {
         exports: 'named',
       },
     },
   },
+  plugins: [{
+    name: 'generate-types',
+    async closeBundle() {
+      if (process.env.NODE_ENV === 'test') return
+
+      removeTypes()
+      await generateTypes()
+      moveTypesToDist()
+      removeTypes()
+    },
+  }],
 })
+
+function removeTypes() {
+  fs.rmSync(path.join(__dirname, 'types'), { recursive: true, force: true })
+}
 
 function generateTypes() {
   return new Promise(resolve => {
@@ -46,7 +60,12 @@ function generateTypes() {
   })
 }
 
-if (process.env.NODE_ENV !== 'test') {
-  fs.rmSync('types', { recursive: true, force: true })
-  generateTypes()
+function moveTypesToDist() {
+  const types = path.join(__dirname, 'types')
+  const dist = path.join(__dirname, 'dist')
+  const files = fs.readdirSync(types).filter(n => n.endsWith('.d.ts'))
+  for (const file of files) {
+    fs.copyFileSync(path.join(types, file), path.join(dist, file))
+    console.log('[types]', `types/${file} -> dist/${file}`)
+  }
 }

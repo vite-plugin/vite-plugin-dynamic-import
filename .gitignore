@@ -110,5 +110,3 @@ pnpm-lock.yaml
 yarn.lock
 
 /types
-/index.cjs
-/index.js
