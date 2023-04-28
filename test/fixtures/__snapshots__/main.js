@@ -66,7 +66,7 @@
     });
   }
 })();
-// ---- dynamic import runtime functions --S--
+// [vite-plugin-dynamic-import] runtime -S-
 function __variableDynamicImportRuntime0__(path) {
   switch (path) {
     case '@/views/foo':
@@ -198,4 +198,4 @@ function __variableDynamicImportRuntime5__(path) {
     })
   }
 }
-// ---- dynamic import runtime functions --E--
+// [vite-plugin-dynamic-import] runtime -E-

@@ -1,15 +1,16 @@
 {
   "name": "vite-plugin-dynamic-import",
-  "version": "1.2.7",
+  "version": "1.3.0",
   "description": "Enhance Vite builtin dynamic import",
-  "type": "module",
-  "main": "index.js",
-  "types": "types",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.js",
-      "require": "./index.cjs"
-    }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./*": "./*"
   },
   "repository": {
     "type": "git",
@@ -22,9 +23,11 @@
     "build": "vite build",
     "test": "vitest run",
     "types": "tsc",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "acorn": "^8.8.2",
+    "es-module-lexer": "^1.2.1",
     "fast-glob": "^3.2.12"
   },
   "devDependencies": {
@@ -32,9 +35,9 @@
     "@types/node": "^18.11.18",
     "node-fetch": "^3.3.0",
     "typescript": "^4.9.4",
-    "vite": "^4.0.4",
-    "vite-plugin-utils": "^0.4.0",
-    "vitest": "^0.27.2"
+    "vite": "^4.3.2",
+    "vite-plugin-utils": "^0.4.2",
+    "vitest": "^0.30.1"
   },
   "keywords": [
     "vite",
@@ -43,8 +46,6 @@
     "dynamic"
   ],
   "files": [
-    "types",
-    "index.cjs",
-    "index.js"
+    "dist"
   ]
 }

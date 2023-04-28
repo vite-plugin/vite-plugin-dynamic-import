@@ -1,14 +1,15 @@
+import fs from 'node:fs'
 import path from 'node:path'
-import type { AcornNode as AcornNode2 } from 'rollup'
-export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 import type { Plugin, ResolvedConfig } from 'vite'
+import {
+  type ImportSpecifier,
+  init as initParseImports,
+  parse as parseImports,
+} from 'es-module-lexer'
+import { parse as parseAst } from 'acorn'
 import fastGlob from 'fast-glob'
 import { DEFAULT_EXTENSIONS } from 'vite-plugin-utils/constant'
-import {
-  MagicString,
-  walk,
-  relativeify,
-} from 'vite-plugin-utils/function'
+import { MagicString, relativeify } from 'vite-plugin-utils/function'
 
 import {
   hasDynamicImport,
@@ -32,7 +33,7 @@ export {
 } from './utils'
 
 export interface Options {
-  filter?: (id: string) => false | void
+  filter?: (id: string) => boolean | void
   /**
    * ```
    * 1. `true` - Match all possibilities as much as possible, more like `webpack`
@@ -40,9 +41,9 @@ export interface Options {
    * 
    * 2. `false` - It behaves more like `@rollup/plugin-dynamic-import-vars`
    * see https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#how-it-works
-   * 
-   * default true
    * ```
+   * 
+   * @defaultValue true
    */
   loose?: boolean
   /**
@@ -51,13 +52,12 @@ export interface Options {
    */
   onFiles?: (files: string[], id: string) => typeof files | void
   /**
-   * It will add `@vite-ignore`  
-   * `import(/*@vite-ignore* / 'import-path')`
+   * Custom importee
+   * 
+   * e.g. - append `\/*@vite-ignore*\/` in front of importee to bypass to Vite
    */
-  viteIgnore?: (rawImportee: string, id: string) => true | void
+  onResolve?: (rawImportee: string, id: string) => typeof rawImportee | void
 }
-
-const PLUGIN_NAME = 'vite-plugin-dynamic-import'
 
 export default function dynamicImport(options: Options = {}): Plugin {
   let config: ResolvedConfig
@@ -65,116 +65,196 @@ export default function dynamicImport(options: Options = {}): Plugin {
   let extensions = DEFAULT_EXTENSIONS
 
   return {
-    name: PLUGIN_NAME,
+    name: 'vite-plugin-dynamic-import',
     configResolved(_config) {
       config = _config
       resolve = new Resolve(_config)
-      // https://github.com/vitejs/vite/blob/37ac91e5f680aea56ce5ca15ce1291adc3cbe05e/packages/vite/src/node/plugins/resolve.ts#L450
+      // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/config.ts#L498
       if (config.resolve?.extensions) extensions = config.resolve.extensions
-    },
-    async transform(code, id) {
-      if (/node_modules\/(?!\.vite\/)/.test(id)) return
-      if (!extensions.includes(path.extname(id))) return
-      if (!hasDynamicImport(code)) return
-      if (options.filter?.(id) === false) return
 
-      const ast = this.parse(code)
-      const ms = new MagicString(code)
-      let dynamicImportIndex = 0
-      const runtimeFunctions: string[] = []
-
-      await walk(ast, {
-        // @ts-ignore
-        async ImportExpression(node: AcornNode) {
-          const importStatement = code.slice(node.start, node.end)
-          const importeeRaw = code.slice(node.source.start, node.source.end)
-
-          // skip @vite-ignore
-          if (viteIgnoreRE.test(importStatement)) return
-
-          // the user explicitly ignore this import
-          if (options.viteIgnore?.(importeeRaw, id)) {
-            ms.overwrite(node.source.start, node.source.start, '/*@vite-ignore*/') // append left
-            return
-          }
-
-          if (node.source.type === 'Literal') {
-            const importee = importeeRaw.slice(1, -1)
-            // empty value
-            if (!importee) return
-            // normally importee
-            if (normallyImporteeRE.test(importee)) return
-
-            const rsld = await resolve.tryResolve(importee, id)
-            // alias or bare
-            if (rsld && normallyImporteeRE.test(rsld.import.resolved)) {
-              ms.overwrite(node.start, node.end, `import("${rsld.import.resolved}")`)
+      // esbuild plugin for Vite's Pre-Bundling
+      _config.optimizeDeps.esbuildOptions ??= {}
+      _config.optimizeDeps.esbuildOptions.plugins ??= []
+      _config.optimizeDeps.esbuildOptions.plugins.push({
+        name: 'vite-plugin-dynamic-import:pre-bundle',
+        setup(build) {
+          build.onLoad({ filter: /.*/ }, async ({ path: id }) => {
+            let code: string
+            try {
+              code = fs.readFileSync(id, 'utf8')
+            } catch (error) {
               return
             }
-          }
 
-          const globResult = await globFiles(
-            node,
-            code,
-            id,
-            resolve,
-            extensions,
-            options.loose !== false,
-          )
-          if (!globResult) return
+            const contents = await transformDynamicImport({
+              options,
+              code,
+              id,
+              resolve,
+              extensions,
+            })
 
-          let { files, resolved, normally } = globResult
-          // skip itself
-          files = files!.filter(f => path.posix.join(path.dirname(id), f) !== id)
-          // execute the Options.onFiles
-          options.onFiles && (files = options.onFiles(files, id) || files)
-
-          if (normally) {
-            // normally importee (🚧-③ After `expressiontoglob()` processing)
-            ms.overwrite(node.start, node.end, `import('${normally}')`)
-          } else {
-            if (!files?.length) return
-            const mapAlias = resolved
-              ? { [resolved.alias.relative]: resolved.alias.findString }
-              : undefined
-
-            const maps = mappingPath(files, mapAlias)
-            const runtimeName = `__variableDynamicImportRuntime${dynamicImportIndex++}__`
-            const runtimeFn = generateDynamicImportRuntime(maps, runtimeName)
-
-            // extension should be removed, because if the "index" file is in the directory, an error will occur
-            //
-            // e.g. 
-            // ├─┬ views
-            // │ ├─┬ foo
-            // │ │ └── index.js
-            // │ └── bar.js
-            //
-            // the './views/*.js' should be matched ['./views/foo/index.js', './views/bar.js'], this may not be rigorous
-            ms.overwrite(node.start, node.end, `${runtimeName}(${importeeRaw})`)
-            runtimeFunctions.push(runtimeFn)
-          }
+            if (contents != null) {
+              return { contents }
+            }
+          })
         },
       })
-
-      if (runtimeFunctions.length) {
-        ms.append([
-          '// ---- dynamic import runtime functions --S--',
-          ...runtimeFunctions,
-          '// ---- dynamic import runtime functions --E--',
-        ].join('\n'))
-      }
-
-      const str = ms.toString()
-      return str === code ? null : str
+    },
+    async transform(code, id) {
+      return transformDynamicImport({
+        options,
+        code,
+        id,
+        resolve,
+        extensions,
+      })
     },
   }
 }
 
+async function transformDynamicImport({
+  options,
+  code,
+  id,
+  resolve,
+  extensions,
+}: {
+  options: Options,
+  code: string,
+  id: string,
+  resolve: Resolve,
+  extensions: string[],
+}) {
+  if (!hasDynamicImport(code)) return
+
+  const userCondition = options.filter?.(id)
+  if (userCondition === false) return
+  // exclude `node_modules` by default
+  // here can only get the files in `node_modules/.vite` and `node_modules/vite/dist/client`
+  if (userCondition !== true && id.includes('node_modules')) return
+
+  // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/plugins/dynamicImportVars.ts#L179
+  await initParseImports
+
+  let imports: readonly ImportSpecifier[] = []
+  try {
+    imports = parseImports(code)[0]
+  } catch (e: any) {
+    // ignore as it might not be a JS file, the subsequent plugins will catch the error
+    return null
+  }
+
+  if (!imports.length) {
+    return null
+  }
+
+  const ms = new MagicString(code)
+  let dynamicImportIndex = 0
+  const runtimeFunctions: string[] = []
+
+  for (let index = 0; index < imports.length; index++) {
+    const {
+      s: start,
+      e: end,
+      ss: expStart,
+      se: expEnd,
+      d: dynamicIndex,
+    } = imports[index]
+
+    if (dynamicIndex === -1) continue
+
+    const importExpression = code.slice(expStart, expEnd)
+    let rawImportee = code.slice(start, end)
+
+    // user custom importee
+    const userImportee = options.onResolve?.(rawImportee, id)
+    if (userImportee) {
+      rawImportee = userImportee
+    }
+
+    // skip @vite-ignore
+    // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/plugins/importAnalysis.ts#L663
+    if (viteIgnoreRE.test(importExpression)) continue
+
+    const ast = parseAst(importExpression, { ecmaVersion: 2020 }) as AcornNode
+    const importExpressionAst = ast.body[0]./* ImportExpression */expression as AcornNode
+
+    // maybe `import.meta`
+    if (importExpressionAst.type !== 'ImportExpression') continue
+
+    if (importExpressionAst.source.type === 'Literal') {
+      const importee = rawImportee.slice(1, -1)
+      // normally importee
+      if (normallyImporteeRE.test(importee)) continue
+
+      const rsld = await resolve.tryResolve(importee, id)
+      // alias or bare-module - 2.x
+      if (rsld && normallyImporteeRE.test(rsld.import.resolved)) {
+        ms.overwrite(expStart, expEnd, `import("${rsld.import.resolved}")`)
+        continue
+      }
+    }
+
+    const globResult = await globFiles(
+      importExpressionAst,
+      importExpression,
+      id,
+      resolve,
+      extensions,
+      options.loose !== false,
+    )
+    if (!globResult) continue
+
+    let { files, resolved, normally } = globResult
+    // skip itself
+    files = files!.filter(f => path.posix.join(path.dirname(id), f) !== id)
+    // execute the Options.onFiles
+    options.onFiles && (files = options.onFiles(files, id) || files)
+
+    if (normally) {
+      // normally importee (🚧-③ After `expressiontoglob()` processing)
+      ms.overwrite(expStart, expEnd, `import('${normally}')`)
+    } else {
+      if (!files?.length) continue
+      const mapAlias = resolved
+        ? { [resolved.alias.relative]: resolved.alias.findString }
+        : undefined
+
+      const maps = mappingPath(files, mapAlias)
+      const runtimeName = `__variableDynamicImportRuntime${dynamicImportIndex++}__`
+      const runtimeFn = generateDynamicImportRuntime(maps, runtimeName)
+
+      // extension should be removed, because if the "index" file is in the directory, an error will occur
+      //
+      // e.g. 
+      // ├─┬ views
+      // │ ├─┬ foo
+      // │ │ └── index.js
+      // │ └── bar.js
+      //
+      // the './views/*.js' should be matched ['./views/foo/index.js', './views/bar.js'], this may not be rigorous
+      ms.overwrite(expStart, expEnd, `${runtimeName}(${rawImportee})`)
+      runtimeFunctions.push(runtimeFn)
+    }
+  }
+
+  if (runtimeFunctions.length) {
+    ms.append([
+      '// [vite-plugin-dynamic-import] runtime -S-',
+      ...runtimeFunctions,
+      '// [vite-plugin-dynamic-import] runtime -E-',
+    ].join('\n'))
+  }
+
+  const str = ms.toString()
+  return str !== code ? str : null
+}
+
 async function globFiles(
   /** ImportExpression */
-  node: AcornNode,
-  code: string,
+  importExpressionAst: AcornNode,
+  importExpression: string,
   importer: string,
   resolve: Resolve,
   extensions: string[],
@@ -202,8 +282,8 @@ async function globFiles(
   let globRaw!: string
 
   glob = await dynamicImportToGlob(
-    node.source,
-    code.slice(node.start, node.end),
+    importExpressionAst.source,
+    importExpression,
     async (raw) => {
       globRaw = raw
       resolved = await resolve.tryResolve(raw, importer)
@@ -229,8 +309,7 @@ async function globFiles(
     return
   }
 
-  // @ts-ignore
-  const globs = [].concat(loose ? toLooseGlob(glob) : glob)
+  const globs = [].concat(loose ? toLooseGlob(glob) as any : glob)
     .map((g: any) => {
       g.includes(PAHT_FILL) && (g = g.replace(PAHT_FILL, ''))
       g.endsWith(EXT_FILL) && (g = g.replace(EXT_FILL, ''))
@@ -244,19 +323,6 @@ async function globFiles(
       //   `./foo/*` -> `./foo/*.{js,ts,vue,...}`
       : g + `.{${extensions.map(e => e.replace(/^\./, '')).join(',')}}`
     )
-
-  /*
-  loose && (glob = toLooseGlob(glob))
-  glob.includes(PAHT_FILL) && (glob = glob.replace(PAHT_FILL, ''))
-  glob.endsWith(EXT_FILL) && (glob = glob.replace(EXT_FILL, ''))
-
-  const fileGlob = path.extname(glob)
-    ? glob
-    // If not ext is not specified, fill necessary extensions
-    // e.g.
-    //   `./foo/*` -> `./foo/*.{js,ts,vue,...}`
-    : glob + `.{${extensions.map(e => e.replace(/^\./, '')).join(',')}}`
-  */
 
   files = fastGlob
     .sync(fileGlobs, { cwd: /* 🚧-① */path.dirname(importer) })

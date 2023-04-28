@@ -26,8 +26,8 @@ beforeAll(async () => {
 describe('vite serve', async () => {
   it('__snapshots__', async () => {
     const mainTs = await (await fetch(`http://localhost:${PORT}/src/main.ts`)).text()
-    const mainJs = fs.readFileSync(path.join(path.join(root, 'dist/main.js')), 'utf8')
-    const mainJsSnap = fs.readFileSync(path.join(path.join(root, '__snapshots__/main.js')), 'utf8')
+    const mainJs = fs.readFileSync(path.join(root, 'dist/main.js'), 'utf8')
+    const mainJsSnap = fs.readFileSync(path.join(root, '__snapshots__/main.js'), 'utf8')
 
     expect(mainTs).string
     expect(mainJs).eq(mainJsSnap)

@@ -1,10 +1,8 @@
 import path from 'node:path'
-import type { AcornNode as AcornNode2 } from 'rollup'
 import {
   singlelineCommentsRE,
   multilineCommentsRE,
 } from 'vite-plugin-utils/constant'
-export type AcornNode<T = any> = AcornNode2 & Record<string, T>
 
 // ------------------------------------------------- RegExp
 
