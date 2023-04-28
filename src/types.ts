@@ -1,0 +1,1 @@
+type AcornNode<T = any> = import('rollup').AcornNode & Record<string, T>
