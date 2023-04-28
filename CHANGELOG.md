@@ -1,5 +1,20 @@
-## [2023-04-27] v1.3.0
+## [2023-04-28] v1.3.0
 
+**Main changes**
+
+- support Vite's [Pre-Bundling](https://vitejs.dev/guide/dep-pre-bundling.html#dependency-pre-bundling) for [vite-plugin-dynamic-import/issues/48](https://github.com/vite-plugin/vite-plugin-dynamic-import/issues/48)
+- use the `es-module-lexer` improve performance
+- integrate `vitest` 🌱
+
+**Full commits**
+
+- babb391 docs: v1.3.0
+- 0949d3f feat: better build
+- c4ef2f6 feat: support Pre-Bundling
+- 966eca5 chore: types
+- 2d090cb chore: cleanup
+- b1a5bab fix: filter `node_modules`, `import.meta`
+- e75e3bc log: v1.3.0
 - 8972bb4 v1.3.0
 - f7a3ab8 doc: v1.3.0
 - b34ada6 test: v1.3.0
