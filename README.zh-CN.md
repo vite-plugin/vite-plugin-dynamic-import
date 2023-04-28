@@ -39,7 +39,7 @@ export default {
 dynamicImport({
   filter(id) {
     // 默认会排除 `node_modules`，所以必须显式的包含它
-    // https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/v1.3.0/src/index.ts#L79
+    // https://github.com/vite-plugin/vite-plugin-dynamic-import/blob/v1.3.0/src/index.ts#L133-L135
     if (/node_modules\/(?!\.vite\/)/.test(id)) {
       return true
     }
