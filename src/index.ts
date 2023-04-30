@@ -22,19 +22,23 @@ import {
   mappingPath,
   toLooseGlob,
 } from './utils'
-import { type Resolved, Resolve } from './resolve'
-import { dynamicImportToGlob } from './dynamic-import-to-glob'
-
-// Public utils
-export { dynamicImportToGlob } from './dynamic-import-to-glob'
-export {
+import {
   type Resolved,
   Resolve,
 } from './resolve'
+import { dynamicImportToGlob } from './dynamic-import-to-glob'
+
+// public export
 export {
-  toLooseGlob,
+  hasDynamicImport,
+  normallyImporteeRE,
   mappingPath,
-} from './utils'
+  toLooseGlob,
+  type Resolved,
+  Resolve,
+  dynamicImportToGlob,
+  globFiles,
+}
 
 export interface Options {
   filter?: (id: string) => boolean | void
@@ -201,14 +205,14 @@ async function transformDynamicImport({
       }
     }
 
-    const globResult = await globFiles(
-      importExpressionAst,
-      importExpression,
-      id,
-      resolve,
+    const globResult = await globFiles({
+      globAstNode: importExpressionAst.source,
+      globSourceCode: importExpression,
+      importer: id,
+      resolve: resolve,
       extensions,
-      options.loose !== false,
-    )
+      loose: options.loose !== false,
+    })
     if (!globResult) continue
 
     let { files, resolved, normally } = globResult
@@ -256,15 +260,24 @@ async function transformDynamicImport({
   return str !== code ? str : null
 }
 
-async function globFiles(
-  /** ImportExpression */
-  importExpressionAst: AcornNode,
-  importExpression: string,
+async function globFiles({
+  globAstNode,
+  globSourceCode,
+  importer,
+  resolve,
+  extensions,
+  loose = true,
+}: {
+  globAstNode: AcornNode,
+  globSourceCode: string,
+  /** Used to calculate relative paths */
   importer: string,
   resolve: Resolve,
+  /** Importable file extensions */
   extensions: string[],
-  loose = true,
-): Promise<{
+  /** Match unlimited levels of subdir as much as possible */
+  loose?: boolean,
+}): Promise<{
   files?: string[]
   resolved?: Resolved
   /**
@@ -287,8 +300,8 @@ async function globFiles(
   let globRaw!: string
 
   glob = await dynamicImportToGlob(
-    importExpressionAst.source,
-    importExpression,
+    globAstNode,
+    globSourceCode,
     async (raw) => {
       globRaw = raw
       resolved = await resolve.tryResolve(raw, importer)

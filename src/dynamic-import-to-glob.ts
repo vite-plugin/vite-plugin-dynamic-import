@@ -69,7 +69,7 @@ function expressionToGlob(node: AcornNode): string {
  */
 export async function dynamicImportToGlob(
   importeeNode: AcornNode,
-  importeeCode: string,
+  importExpression: string,
   /**
    * The `resolver` for processing alias or bare(node_modules), 
    * and try to add extension for compatible restrict of '@rollup/plugin-dynamic-import-vars'
@@ -96,19 +96,19 @@ export async function dynamicImportToGlob(
 
   if (glob.startsWith('*')) {
     throw new Error(
-      `invalid import "${importeeCode}". It cannot be statically analyzed. Variable dynamic imports must start with ./ and be limited to a specific directory. ${example}`
+      `invalid import "${importExpression}". It cannot be statically analyzed. Variable dynamic imports must start with ./ and be limited to a specific directory. ${example}`
     )
   }
 
   if (glob.startsWith('/')) {
     throw new Error(
-      `invalid import "${importeeCode}". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. ${example}`
+      `invalid import "${importExpression}". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. ${example}`
     )
   }
 
   if (!glob.startsWith('./') && !glob.startsWith('../')) {
     throw new Error(
-      `invalid import "${importeeCode}". Variable bare imports are not supported, imports must start with ./ in the static part of the import. ${example}`
+      `invalid import "${importExpression}". Variable bare imports are not supported, imports must start with ./ in the static part of the import. ${example}`
     )
   }
 
@@ -116,13 +116,13 @@ export async function dynamicImportToGlob(
   const ownDirectoryStarExtension = /^\.\/\*\.[\w]+$/
   if (ownDirectoryStarExtension.test(glob)) {
     throw new Error(
-      `invalid import "${importeeCode}". Variable imports cannot import their own directory, place imports in a separate directory or make the import filename more specific. ${example}`
+      `invalid import "${importExpression}". Variable imports cannot import their own directory, place imports in a separate directory or make the import filename more specific. ${example}`
     )
   }
 
   if (path.extname(glob) === '') {
     throw new Error(
-      `invalid import "${importeeCode}". A file extension must be included in the static part of the import. ${example}`
+      `invalid import "${importExpression}". A file extension must be included in the static part of the import. ${example}`
     )
   }
 
