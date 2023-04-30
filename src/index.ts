@@ -206,8 +206,8 @@ async function transformDynamicImport({
     }
 
     const globResult = await globFiles({
-      globAstNode: importExpressionAst.source,
-      globSourceCode: importExpression,
+      importeeNode: importExpressionAst.source,
+      importExpression,
       importer: id,
       resolve: resolve,
       extensions,
@@ -261,15 +261,15 @@ async function transformDynamicImport({
 }
 
 async function globFiles({
-  globAstNode,
-  globSourceCode,
+  importeeNode,
+  importExpression,
   importer,
   resolve,
   extensions,
   loose = true,
 }: {
-  globAstNode: AcornNode,
-  globSourceCode: string,
+  importeeNode: AcornNode,
+  importExpression: string,
   /** Used to calculate relative paths */
   importer: string,
   resolve: Resolve,
@@ -300,8 +300,8 @@ async function globFiles({
   let globRaw!: string
 
   glob = await dynamicImportToGlob(
-    globAstNode,
-    globSourceCode,
+    importeeNode,
+    importExpression,
     async (raw) => {
       globRaw = raw
       resolved = await resolve.tryResolve(raw, importer)
