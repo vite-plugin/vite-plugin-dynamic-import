@@ -10,6 +10,7 @@ import { parse as parseAst } from 'acorn'
 import fastGlob from 'fast-glob'
 import { DEFAULT_EXTENSIONS } from 'vite-plugin-utils/constant'
 import {
+  COLOURS,
   MagicString,
   cleanUrl,
   relativeify,
@@ -39,6 +40,8 @@ export {
   dynamicImportToGlob,
   globFiles,
 }
+
+export const TAG = '[vite-plugin-dynamic-import]'
 
 export interface Options {
   filter?: (id: string) => boolean | void
@@ -216,43 +219,53 @@ async function transformDynamicImport({
     if (!globResult) continue
 
     let { files, resolved, normally } = globResult
+
+    if (normally) {
+      // normally importee (🚧-③ After `import('./dynamic-import-to-glob').expressiontoglob()` processing)
+      ms.overwrite(expStart, expEnd, `import('${normally}')`)
+      continue
+    }
+
+    if (!files?.length) {
+      console.log(
+        TAG,
+        COLOURS.yellow(`no files matched: ${importExpression}\n`),
+        `  file: ${id}`,
+      )
+      continue
+    }
+
     // skip itself
-    files = files!.filter(f => path.posix.join(path.dirname(id), f) !== id)
+    files = files.filter(f => path.posix.join(path.dirname(id), f) !== id)
     // execute the Options.onFiles
     options.onFiles && (files = options.onFiles(files, id) || files)
 
-    if (normally) {
-      // normally importee (🚧-③ After `expressiontoglob()` processing)
-      ms.overwrite(expStart, expEnd, `import('${normally}')`)
-    } else {
-      if (!files?.length) continue
-      const mapAlias = resolved
-        ? { [resolved.alias.relative]: resolved.alias.findString }
-        : undefined
+    const mapAlias = resolved
+      ? { [resolved.alias.relative]: resolved.alias.findString }
+      : undefined
 
-      const maps = mappingPath(files, mapAlias)
-      const runtimeName = `__variableDynamicImportRuntime${dynamicImportIndex++}__`
-      const runtimeFn = generateDynamicImportRuntime(maps, runtimeName)
+    const maps = mappingPath(files, mapAlias)
+    const runtimeName = `__variableDynamicImportRuntime${dynamicImportIndex++}__`
+    const runtimeFn = generateDynamicImportRuntime(maps, runtimeName)
 
-      // extension should be removed, because if the "index" file is in the directory, an error will occur
-      //
-      // e.g. 
-      // ├─┬ views
-      // │ ├─┬ foo
-      // │ │ └── index.js
-      // │ └── bar.js
-      //
-      // the './views/*.js' should be matched ['./views/foo/index.js', './views/bar.js'], this may not be rigorous
-      ms.overwrite(expStart, expEnd, `${runtimeName}(${rawImportee})`)
-      runtimeFunctions.push(runtimeFn)
-    }
+    // extension should be removed, because if the "index" file is in the directory, an error will occur
+    //
+    // e.g. 
+    // ├─┬ views
+    // │ ├─┬ foo
+    // │ │ └── index.js
+    // │ └── bar.js
+    //
+    // the './views/*.js' should be matched ['./views/foo/index.js', './views/bar.js'], this may not be rigorous
+    ms.overwrite(expStart, expEnd, `${runtimeName}(${rawImportee})`)
+    runtimeFunctions.push(runtimeFn)
   }
 
   if (runtimeFunctions.length) {
     ms.append([
-      '// [vite-plugin-dynamic-import] runtime -S-',
+      `// ${TAG} runtime -S-`,
       ...runtimeFunctions,
-      '// [vite-plugin-dynamic-import] runtime -E-',
+      `// ${TAG} runtime -E-`,
     ].join('\n'))
   }
 
