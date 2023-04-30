@@ -189,7 +189,7 @@ async function transformDynamicImport({
     // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/plugins/importAnalysis.ts#L663
     if (viteIgnoreRE.test(importExpression)) continue
 
-    const ast = parseAst(importExpression, { ecmaVersion: 2020 }) as AcornNode
+    const ast = parseAst(code, { sourceType: 'module', ecmaVersion: 2020 }) as AcornNode
     const importExpressionAst = ast.body[0]./* ImportExpression */expression as AcornNode
 
     // maybe `import.meta`
