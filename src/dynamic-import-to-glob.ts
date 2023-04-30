@@ -68,8 +68,8 @@ function expressionToGlob(node: AcornNode): string {
  * @see https://github.com/rollup/plugins/blob/master/packages/dynamic-import-vars/src/dynamic-import-to-glob.js  
  */
 export async function dynamicImportToGlob(
-  node: AcornNode,
-  sourceString: string,
+  importeeNode: AcornNode,
+  importeeCode: string,
   /**
    * The `resolver` for processing alias or bare(node_modules), 
    * and try to add extension for compatible restrict of '@rollup/plugin-dynamic-import-vars'
@@ -87,7 +87,7 @@ export async function dynamicImportToGlob(
    */
   resolver?: (glob: string) => string | Promise<string>,
 ): Promise<string | null> {
-  let glob = expressionToGlob(node)
+  let glob = expressionToGlob(importeeNode)
   glob = await resolver?.(glob) ?? glob
   if (!glob.includes('*') || glob.startsWith('data:')) {
     return null
@@ -96,19 +96,19 @@ export async function dynamicImportToGlob(
 
   if (glob.startsWith('*')) {
     throw new Error(
-      `invalid import "${sourceString}". It cannot be statically analyzed. Variable dynamic imports must start with ./ and be limited to a specific directory. ${example}`
+      `invalid import "${importeeCode}". It cannot be statically analyzed. Variable dynamic imports must start with ./ and be limited to a specific directory. ${example}`
     )
   }
 
   if (glob.startsWith('/')) {
     throw new Error(
-      `invalid import "${sourceString}". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. ${example}`
+      `invalid import "${importeeCode}". Variable absolute imports are not supported, imports must start with ./ in the static part of the import. ${example}`
     )
   }
 
   if (!glob.startsWith('./') && !glob.startsWith('../')) {
     throw new Error(
-      `invalid import "${sourceString}". Variable bare imports are not supported, imports must start with ./ in the static part of the import. ${example}`
+      `invalid import "${importeeCode}". Variable bare imports are not supported, imports must start with ./ in the static part of the import. ${example}`
     )
   }
 
@@ -116,13 +116,13 @@ export async function dynamicImportToGlob(
   const ownDirectoryStarExtension = /^\.\/\*\.[\w]+$/
   if (ownDirectoryStarExtension.test(glob)) {
     throw new Error(
-      `invalid import "${sourceString}". Variable imports cannot import their own directory, place imports in a separate directory or make the import filename more specific. ${example}`
+      `invalid import "${importeeCode}". Variable imports cannot import their own directory, place imports in a separate directory or make the import filename more specific. ${example}`
     )
   }
 
   if (path.extname(glob) === '') {
     throw new Error(
-      `invalid import "${sourceString}". A file extension must be included in the static part of the import. ${example}`
+      `invalid import "${importeeCode}". A file extension must be included in the static part of the import. ${example}`
     )
   }
 
