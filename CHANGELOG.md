@@ -1,3 +1,12 @@
+## [2023-04-30] v1.3.1
+
+- 9c81c19 docs: v1.3.1
+- db41149 v1.3.1
+- f653b57 chore: better args name
+- a4dc220 feat: export `globFiles`
+- 9fbefa5 chore: better args name
+- da70ede chore: cleanup
+
 ## [2023-04-28] v1.3.0
 
 **Main changes**

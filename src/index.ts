@@ -9,7 +9,11 @@ import {
 import { parse as parseAst } from 'acorn'
 import fastGlob from 'fast-glob'
 import { DEFAULT_EXTENSIONS } from 'vite-plugin-utils/constant'
-import { MagicString, relativeify } from 'vite-plugin-utils/function'
+import {
+  MagicString,
+  cleanUrl,
+  relativeify,
+} from 'vite-plugin-utils/function'
 
 import {
   hasDynamicImport,
@@ -18,19 +22,23 @@ import {
   mappingPath,
   toLooseGlob,
 } from './utils'
-import { type Resolved, Resolve } from './resolve'
-import { dynamicImportToGlob } from './dynamic-import-to-glob'
-
-// Public utils
-export { dynamicImportToGlob } from './dynamic-import-to-glob'
-export {
+import {
   type Resolved,
   Resolve,
 } from './resolve'
+import { dynamicImportToGlob } from './dynamic-import-to-glob'
+
+// public export
 export {
-  toLooseGlob,
+  hasDynamicImport,
+  normallyImporteeRE,
   mappingPath,
-} from './utils'
+  toLooseGlob,
+  type Resolved,
+  Resolve,
+  dynamicImportToGlob,
+  globFiles,
+}
 
 export interface Options {
   filter?: (id: string) => boolean | void
@@ -101,7 +109,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
         },
       })
     },
-    async transform(code, id) {
+    transform(code, id) {
       return transformDynamicImport({
         options,
         code,
@@ -126,12 +134,13 @@ async function transformDynamicImport({
   resolve: Resolve,
   extensions: string[],
 }) {
+  if (!(extensions.includes(path.extname(id)) || extensions.includes(path.extname(cleanUrl(id))))) return
   if (!hasDynamicImport(code)) return
 
   const userCondition = options.filter?.(id)
   if (userCondition === false) return
   // exclude `node_modules` by default
-  // here can only get the files in `node_modules/.vite` and `node_modules/vite/dist/client`
+  // here can only get the files in `node_modules/.vite` and `node_modules/vite/dist/client`, others will be handled by Pre-Bundling
   if (userCondition !== true && id.includes('node_modules')) return
 
   // https://github.com/vitejs/vite/blob/v4.3.0/packages/vite/src/node/plugins/dynamicImportVars.ts#L179
@@ -196,14 +205,14 @@ async function transformDynamicImport({
       }
     }
 
-    const globResult = await globFiles(
-      importExpressionAst,
+    const globResult = await globFiles({
+      importeeNode: importExpressionAst.source,
       importExpression,
-      id,
-      resolve,
+      importer: id,
+      resolve: resolve,
       extensions,
-      options.loose !== false,
-    )
+      loose: options.loose !== false,
+    })
     if (!globResult) continue
 
     let { files, resolved, normally } = globResult
@@ -251,15 +260,24 @@ async function transformDynamicImport({
   return str !== code ? str : null
 }
 
-async function globFiles(
-  /** ImportExpression */
-  importExpressionAst: AcornNode,
+async function globFiles({
+  importeeNode,
+  importExpression,
+  importer,
+  resolve,
+  extensions,
+  loose = true,
+}: {
+  importeeNode: AcornNode,
   importExpression: string,
+  /** Used to calculate relative paths */
   importer: string,
   resolve: Resolve,
+  /** Importable file extensions */
   extensions: string[],
-  loose = true,
-): Promise<{
+  /** Match unlimited levels of subdir as much as possible */
+  loose?: boolean,
+}): Promise<{
   files?: string[]
   resolved?: Resolved
   /**
@@ -282,7 +300,7 @@ async function globFiles(
   let globRaw!: string
 
   glob = await dynamicImportToGlob(
-    importExpressionAst.source,
+    importeeNode,
     importExpression,
     async (raw) => {
       globRaw = raw
