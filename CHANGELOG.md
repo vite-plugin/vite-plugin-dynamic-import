@@ -1,3 +1,10 @@
+## [2023-05-04] v1.3.4
+
+- 1e7aeed v1.3.4
+- fe75572 chore(test): cleanup
+- bcac9ab feat: built into `node14`
+- 3cdf718 fix: v1.3.3
+
 ## [2023-05-04] v1.3.3
 
 - 9397f17 v1.3.3
