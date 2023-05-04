@@ -1,3 +1,8 @@
+## [2023-05-04] v1.3.3
+
+- 9397f17 v1.3.3
+- 16f5d58 chore: cleanup | closes [#53](https://github.com/vite-plugin/vite-plugin-dynamic-import/issues/53)
+
 ## [2023-04-30] v1.3.2
 
 - 1b96e39 v1.3.2
