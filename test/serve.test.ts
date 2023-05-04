@@ -12,25 +12,31 @@ import {
   it,
 } from 'vitest'
 import fetch from 'node-fetch'
+import fastGlob from 'fast-glob'
 
 const root = path.join(__dirname, 'fixtures')
 let server: ViteDevServer | null = null
-const PORT = 4000
+let port = 4000
 
 beforeAll(async () => {
   fs.rmSync(path.join(root, 'dist'), { recursive: true, force: true })
   server = await createServer({ configFile: path.join(root, 'vite.config.ts') })
-  await server.listen(PORT)
+  await server.listen(port)
+  // @ts-ignore
+  port = server.httpServer?.address().port
 })
 
 describe('vite serve', async () => {
   it('__snapshots__', async () => {
-    const mainTs = await (await fetch(`http://localhost:${PORT}/src/main.ts`)).text()
-    const mainJs = fs.readFileSync(path.join(root, 'dist/main.js'), 'utf8')
-    const mainJsSnap = fs.readFileSync(path.join(root, '__snapshots__/main.js'), 'utf8')
+    const files = fastGlob.sync('__snapshots__/**/*', { cwd: root })
+    for (const file of files) {
+      const response = await (await fetch(`http://localhost:${port}/${file.replace('__snapshots__', 'src')}`)).text()
+      const distFile = fs.readFileSync(path.join(root, file.replace('__snapshots__', 'dist')), 'utf8')
+      const snapFile = fs.readFileSync(path.join(root, file), 'utf8')
 
-    expect(mainTs).string
-    expect(mainJs).eq(mainJsSnap)
+      expect(response).string
+      expect(distFile).eq(snapFile)
+    }
   })
 })
 

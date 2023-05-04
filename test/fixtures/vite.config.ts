@@ -11,11 +11,11 @@ export default defineConfig({
       name: 'vite-plugin-dynamic-import:test',
       transform(code, id) {
         if (/src\/main\.ts$/.test(id)) {
-          const { dir, name } = path.parse(id)
-          const dist = dir.replace('src', 'dist')
-          !fs.existsSync(dist) && fs.mkdirSync(dist, { recursive: true })
-          // Write transformed code to dist
-          fs.writeFileSync(path.join(dist, `${name}.js`), code)
+          // write transformed code to dist/
+          const filename = id.replace('src', 'dist')
+          const dirname = path.dirname(filename)
+          if (!fs.existsSync(dirname)) fs.mkdirSync(dirname)
+          fs.writeFileSync(filename, code)
         }
       },
     },
