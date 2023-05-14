@@ -1,3 +1,7 @@
+## [2023-05-14] v1.4.0
+
+- ceb1bba feat: compatible `pnpm`
+
 ## [2023-05-04] v1.3.4
 
 - 1e7aeed v1.3.4

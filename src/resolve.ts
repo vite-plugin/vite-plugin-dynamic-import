@@ -36,7 +36,6 @@ export class Resolve {
   constructor(
     private config: ResolvedConfig,
     private resolve = config.createResolver(),
-    private node_modules_paths = find_node_modules(config.root),
   ) { }
 
   /**
@@ -93,6 +92,8 @@ export class Resolve {
       return
     }
 
+    // Based on the `importer` lookup can be compatible symbolic-link(pnpm)
+    const node_modules_paths = find_node_modules(importer)
     const paths = ipte.split('/')
     let level = ''
     let find: string | undefined, replacement!: string
@@ -100,7 +101,7 @@ export class Resolve {
     // Find the last level of effective path step by step
     let p: string | undefined; while (p = paths.shift()) {
       level = path.posix.join(level, p)
-      for (const node_modules of this.node_modules_paths) {
+      for (const node_modules of node_modules_paths) {
         const fullPath = path.join(node_modules, level)
         if (fs.existsSync(fullPath)) {
           find = level
