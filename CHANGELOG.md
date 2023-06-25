@@ -1,3 +1,7 @@
+## [2023-06-25] v1.4.1
+
+- e2e4ba6 fix: correct esbuild loader #56, closes [#56](https://github.com/vite-plugin/vite-plugin-dynamic-import/issues/56)
+
 ## [2023-05-14] v1.4.0
 
 - ceb1bba feat: compatible `pnpm`
