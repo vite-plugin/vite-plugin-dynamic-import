@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin, ResolvedConfig } from 'vite'
+import type { Loader } from 'esbuild'
 import {
   type ImportSpecifier,
   init as initParseImports,
@@ -106,7 +107,10 @@ export default function dynamicImport(options: Options = {}): Plugin {
             })
 
             if (contents != null) {
-              return { contents }
+              return {
+                contents,
+                loader: id.slice(id.lastIndexOf('.') + 1) as Loader,
+              }
             }
           })
         },
