@@ -303,7 +303,7 @@ async function globFiles({
    * In v2.9.9 Vite has handled internally(2022-06-09) ????  
    * import('@/views/' + 'foo.js')
    * ↓
-   * import('@/viewsfoo.js')
+   * import('@/views/foo.js')
    */
   normally?: string
 } | undefined> {
