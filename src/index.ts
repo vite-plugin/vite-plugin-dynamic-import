@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin, ResolvedConfig } from 'vite'
+import type { SourceMapInput } from 'rollup'
 import type { Loader } from 'esbuild'
 import {
   type ImportSpecifier,
@@ -9,10 +10,10 @@ import {
 } from 'es-module-lexer'
 import { parse as parseAst } from 'acorn'
 import fastGlob from 'fast-glob'
+import MagicString from 'magic-string'
 import { DEFAULT_EXTENSIONS } from 'vite-plugin-utils/constant'
 import {
   COLOURS,
-  MagicString,
   cleanUrl,
   relativeify,
 } from 'vite-plugin-utils/function'
@@ -98,7 +99,7 @@ export default function dynamicImport(options: Options = {}): Plugin {
               return
             }
 
-            const contents = await transformDynamicImport({
+            const result = await transformDynamicImport({
               options,
               code,
               id,
@@ -106,9 +107,9 @@ export default function dynamicImport(options: Options = {}): Plugin {
               extensions,
             })
 
-            if (contents != null) {
+            if (result != null) {
               return {
-                contents,
+                contents: result.code,
                 loader: id.slice(id.lastIndexOf('.') + 1) as Loader,
               }
             }
@@ -140,7 +141,7 @@ async function transformDynamicImport({
   id: string,
   resolve: Resolve,
   extensions: string[],
-}) {
+}): Promise<{ code: string; map: SourceMapInput; } | null | undefined> {
   if (!(extensions.includes(path.extname(id)) || extensions.includes(path.extname(cleanUrl(id))))) return
   if (!hasDynamicImport(code)) return
 
@@ -273,8 +274,12 @@ async function transformDynamicImport({
     ].join('\n'))
   }
 
-  const str = ms.toString()
-  return str !== code ? str : null
+  if (ms.hasChanged()) {
+    return {
+      code: ms.toString(),
+      map: ms.generateMap({ hires: true, source: id }),
+    }
+  }
 }
 
 async function globFiles({

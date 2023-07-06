@@ -1,3 +1,9 @@
+## [2023-07-06] v1.5.0
+
+- c7c380c feat: generate sourcemap #57, closes [#57](https://github.com/vite-plugin/vite-plugin-dynamic-import/issues/57)
+- d677983 Merge pull request #59 from higuaifan/patch-1
+- e6286bf fix: comments
+
 ## [2023-06-25] v1.4.1
 
 - e2e4ba6 fix: correct esbuild loader #56, closes [#56](https://github.com/vite-plugin/vite-plugin-dynamic-import/issues/56)
