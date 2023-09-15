@@ -141,7 +141,7 @@ For the alias in `import()`, we can calculate the relative path according to `im
 If the import path has no suffix, we use **[glob](https://www.npmjs.com/package/fast-glob)** to find the file according to `UserConfig.resolve.extensions` and supplement the suffix of the import path.  
 So we need to list all the possibilities
 
-1. transpire dynamic import variable, yout can see [@rollup/plugin-dynamic-import-vars](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#how-it-works)
+1. transpire dynamic import variable, you can see [@rollup/plugin-dynamic-import-vars](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#how-it-works)
 
 `./views/${variable}` -> `./views/*`
 
