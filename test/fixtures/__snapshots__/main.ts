@@ -170,6 +170,9 @@ function __variableDynamicImportRuntime4__(path) {
 }
 function __variableDynamicImportRuntime5__(path) {
   switch (path) {
+    case '@/main-with-string-comments':
+    case '@/main-with-string-comments.ts':
+      return import('./main-with-string-comments.ts');
     case '@/views/bar':
     case '@/views/bar.mjs':
       return import('./views/bar.mjs');
