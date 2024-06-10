@@ -35,7 +35,12 @@ describe('vite serve', async () => {
       const snapFile = fs.readFileSync(path.join(root, file), 'utf8')
 
       expect(response).string
-      expect(distFile).eq(snapFile)
+
+      // Depending on the OS the snap files were generated in, they may have different line endings
+      const distFileWithoutLineEndings = distFile.replace(/\r|\n/g, "");
+      const snapFileWithoutLineEndings = snapFile.replace(/\r|\n/g, "");
+
+      expect(distFileWithoutLineEndings).eq(snapFileWithoutLineEndings)
     }
   })
 })
