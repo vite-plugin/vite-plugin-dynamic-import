@@ -351,20 +351,27 @@ async function globFiles({
     return
   }
 
-  const globs = [].concat(loose ? toLooseGlob(glob) as any : glob)
-    .map((g: any) => {
+  const globs = ([] as string[]).concat(loose ? toLooseGlob(glob) : glob)
+    .map((g) => {
       g.includes(PAHT_FILL) && (g = g.replace(PAHT_FILL, ''))
       g.endsWith(EXT_FILL) && (g = g.replace(EXT_FILL, ''))
       return g
     })
   const fileGlobs = globs
-    .map(g => path.extname(g)
-      ? g
+    .map(g => {
+      if (path.extname(g)) {
+        return g
+      }
+
+      // TODO: /jpe?g/ -> [jpg, jpeg]
+      const ext = `.{${extensions.map(e => e.replace(/^\./, '')).join(',')}}`
+
       // If not ext is not specified, fill necessary extensions
       // e.g.
       //   `./foo/*` -> `./foo/*.{js,ts,vue,...}`
-      : g + `.{${extensions.map(e => e.replace(/^\./, '')).join(',')}}`
-    )
+      //   `./foo/*` -> `./foo/*/index.{js,ts,vue,...}`
+      return [g + ext, `${g}/index${ext}`]
+    }).flat()
 
   files = fastGlob
     .sync(fileGlobs, { cwd: /* 🚧-① */path.dirname(importer) })
