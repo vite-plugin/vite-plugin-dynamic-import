@@ -60,16 +60,20 @@ export class Resolve {
         // https://github.com/rollup/plugins/blob/8fadc64c679643569239509041a24a9516baf340/packages/alias/src/index.ts#L16
         : ipte.startsWith(a.find + /* 🚧-④ */'/')
     )
+
     if (!alias) return
+    
     const { find } = alias
     const replacement = normalizePath(alias.replacement)
 
     const findString = find instanceof RegExp
       ? find.exec(importee)![0]
       : find
+
     const relativePath = replacement.startsWith('.')
       ? replacement
-      : relativeify(path.posix.relative(path.dirname(importer), replacement))
+      : relativeify(path.posix.relative(normalizePath(path.dirname(importer)), replacement))
+
     const resolvedAlias: Resolved['alias'] = {
       ...alias,
       findString,
@@ -93,7 +97,9 @@ export class Resolve {
     }
 
     // Based on the `importer` lookup can be compatible symbolic-link(pnpm)
-    const node_modules_paths = find_node_modules(importer)
+    const normalizedImporter = normalizePath(importer)
+    const node_modules_paths = find_node_modules(normalizedImporter)
+
     const paths = ipte.split('/')
     let level = ''
     let find: string | undefined, replacement!: string
@@ -105,7 +111,10 @@ export class Resolve {
         const fullPath = path.join(node_modules, level)
         if (fs.existsSync(fullPath)) {
           find = level
-          const relativePath = relativeify(path.posix.relative(path.dirname(importer), node_modules))
+          const relativePath = relativeify(
+            path.posix.relative(
+              normalizePath(path.dirname(importer)), 
+              node_modules))
           // Nearest path and node_modules sibling
           // e.g. `ui-lib/${theme}/style.css` -> `./node_modules/ui-lib/${theme}/style.css`
           replacement = `${relativePath}/${level}`
@@ -113,6 +122,7 @@ export class Resolve {
         }
       }
     }
+
     if (!find) return
 
     // Fake the bare module of node_modules into alias, and `replacement` here is a relative path
@@ -122,8 +132,12 @@ export class Resolve {
       findString: find,
       relative: replacement.startsWith('.')
         ? replacement
-        : relativeify(path.posix.relative(path.dirname(importer), replacement)),
+        : relativeify(
+            path.posix.relative(
+              normalizePath(path.dirname(importer)), 
+              replacement)),
     }
+
     return {
       type: 'bare',
       ...this.resolveAlias(importeeRaw, importer, alias)
@@ -152,7 +166,7 @@ export class Resolve {
       const relativePath = relativeify(path.posix.relative(
         // Usually, the `replacement` we use is the directory path
         // So we also use the `path.dirname` path for calculation
-        path.dirname(/* 🚧-① */importer),
+        normalizePath(path.dirname(/* 🚧-① */importer)),
         replacement,
       ))
       ipte = ipte.replace(find instanceof RegExp ? find : find + /* 🚧-④ */'/', '')

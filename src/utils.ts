@@ -1,8 +1,4 @@
 import path from 'node:path'
-import {
-  singlelineCommentsRE,
-  multilineCommentsRE,
-} from 'vite-plugin-utils/constant'
 
 // ------------------------------------------------- RegExp
 
@@ -15,10 +11,14 @@ export const deepImportRE = /^([^@][^/]*)\/|^(@[^/]+\/[^/]+)\//
 
 // ------------------------------------------------- function
 
+/**
+ * @param {string} code - The code to check for dynamic imports.
+ * @returns bool
+ * @description Determines whether a string containing javascript code may contain dynamic imports. It should be noted this is a naive check 
+ * and may produce false positives, especially when import statements may appear in comments or strings. However, removing comments in their
+ * entirety would require parsing the full AST to do so correctly.
+ */
 export function hasDynamicImport(code: string) {
-  code = code
-    .replace(singlelineCommentsRE, '')
-    .replace(multilineCommentsRE, '')
   return dynamicImportRE.test(code)
 }
 

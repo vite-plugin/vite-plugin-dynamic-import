@@ -163,6 +163,8 @@ async function transformDynamicImport({
   }
 
   if (!imports.length) {
+    // as hasDynamicImports may find import statements within comments, we need to verify results
+    // in the parser. If there are no dynamic imports, we can skip the transform. 
     return null
   }
 
