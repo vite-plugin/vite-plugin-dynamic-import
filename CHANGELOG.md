@@ -1,3 +1,12 @@
+## [2024-09-16] v1.6.0
+
+- 51c5eb2 chore: bump deps
+- 5654c85 feat(1.6.0): support glob tail with `/index` for vite-plugin-commonjs#49
+- a7b22c9 refactor: hasDynamicImport comment import issue (#75)
+- 9d5ce7d Merge pull request #63 from Lee-Si-Yoon/patch-1
+- d56ac2d fix typo
+- a32caad add License #61
+
 ## [2023-07-06] v1.5.0
 
 - c7c380c feat: generate sourcemap #57, closes [#57](https://github.com/vite-plugin/vite-plugin-dynamic-import/issues/57)
