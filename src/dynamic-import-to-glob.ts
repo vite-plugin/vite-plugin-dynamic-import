@@ -2,11 +2,15 @@ import path from 'node:path'
 
 const example = 'For example: import(`./foo/${bar}.js`).'
 
-function sanitizeString(str: string) {
-  if (str.includes('*')) {
-    throw new Error('A dynamic import cannot contain * characters.')
+function sanitizeString(str: any) {
+  if(typeof str === "string" ){
+    if (str.includes('*')) {
+      throw new Error('A dynamic import cannot contain * characters.')
+    }
+    return str
+  } else {
+    return "*"
   }
-  return str
 }
 
 function templateLiteralToGlob(node: AcornNode) {
