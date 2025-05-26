@@ -89,7 +89,7 @@ export function mappingPath(paths: string[], alias?: Record<string, string>) {
       // @/foo
       importee.endsWith(`/index${ext}`) && importee.replace(`/index${ext}`, ''),
       // @/foo/index
-      importee.replace(ext, ''),
+      ext && importee.endsWith(ext) ? importee.slice(0, -ext.length) : importee,
       // @/foo/index.js
       importee,
     ].filter(Boolean) as string[]
